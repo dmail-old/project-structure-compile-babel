@@ -1,0 +1,62 @@
+{
+	"name": "@dmail/project-structure-compile-babel",
+	"version": "1.0.0",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/dmail/project-structure-compile-babel"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"main": "dist/index.js",
+	"module": "index.js",
+	"files": [
+		"dist",
+		"src",
+		"index.js"
+	],
+	"engines": {
+		"node": ">=8.6.0"
+	},
+	"dependencies": {
+		"@babel/core": "7.1.0",
+		"@babel/preset-env": "7.1.0",
+		"promise-sequential": "1.1.1",
+		"@dmail/project-structure": "github:dmail/project-structure"
+	},
+	"devDependencies": {
+		"@dmail/project-prettier-config": "github:dmail/project-prettier-config",
+		"prettier": "1.9.1",
+		"@dmail/project-eslint-config": "github:dmail/project-eslint-config",
+		"eslint": "5.1.0",
+		"eslint-plugin-import": "2.6.0",
+		"babel-eslint": "9.0.0",
+		"@dmail/prettiest": "github:dmail/prettiest",
+		"rimraf": "2.6.2",
+		"rollup": "0.66.2",
+		"rollup-plugin-node-resolve": "3.4.0",
+		"rollup-plugin-babel": "4.0.3",
+
+		"@babel/plugin-proposal-object-rest-spread": "7.0.0",
+		"@babel/plugin-transform-spread": "7.0.0"
+	},
+	"scripts": {
+		"code-compile": "node ./script/compile.js",
+		"code-clean": "rimraf dist",
+		"code-build": "npm run code-clean && npm run code-compile",
+		"code-lint": "eslint .",
+		"code-list": "prettiest-list",
+		"code-format": "prettiest",
+		"test-list": "test-list",
+		"test-before": "npm run code-clean && npm run code-lint && npm run code-format && npm run code-compile",
+		"test-run": "test-run",
+		"test": "npm run test-before && npm run test-run",
+		"repo-reset": "npm run code-clean && npm run test-cover-clean && rimraf node_modules",
+		"repo-reinstall": "npm run repo-reset && npm install",
+		"build": "npm run code-build",
+		"compile": "npm run code-compile",
+		"prepublishOnly": "npm run code-build",
+		"reinstall": "npm run repo-reinstall"
+	}
+}
