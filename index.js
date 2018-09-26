@@ -6,16 +6,20 @@ import { getBabelPluginsFor } from "./src/getBabelPluginsFor.js"
 
 const { transformAsync } = require("@babel/core") // rollup fails if using import here
 
+export { writeFileFromString }
+
+export { getBabelPluginsFor }
+
 const metaPredicate = ({ compile }) => compile
 
 export const compileRoot = ({
   root,
   into = "dist",
-  name = "node",
-  version = "8.0",
+  platformName = "node",
+  platformVersion = "8.0",
   moduleOutput = "commonjs",
 }) => {
-  const plugins = getBabelPluginsFor({ name, version, moduleOutput })
+  const plugins = getBabelPluginsFor({ platformName, platformVersion, moduleOutput })
   const transpile = ({ code, filename, sourceFileName }) => {
     return transformAsync(code, {
       plugins,

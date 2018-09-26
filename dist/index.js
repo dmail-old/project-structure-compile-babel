@@ -510,9 +510,9 @@ const getPlugins = options => {
 };
 
 const getBabelPluginsFor = ({
-  name = "node",
+  platformName = "node",
   // https://github.com/babel/babel/issues/7277
-  version = "8.0",
+  platformVersion = "8.0",
   moduleOutput = "commonjs" // "systemjs" for dev-server
 
 }) => {
@@ -522,7 +522,7 @@ const getBabelPluginsFor = ({
   } = getPlugins({
     useBuiltIns: false,
     targets: {
-      [name]: version
+      [platformName]: platformVersion
     },
     modules: moduleOutput,
     debug: false,
@@ -535,7 +535,6 @@ const {
   transformAsync
 } = require("@babel/core"); // rollup fails if using import here
 
-
 const metaPredicate = ({
   compile
 }) => compile;
@@ -543,13 +542,13 @@ const metaPredicate = ({
 const compileRoot = ({
   root,
   into = "dist",
-  name = "node",
-  version = "8.0",
+  platformName = "node",
+  platformVersion = "8.0",
   moduleOutput = "commonjs"
 }) => {
   const plugins = getBabelPluginsFor({
-    name,
-    version,
+    platformName,
+    platformVersion,
     moduleOutput
   });
 
@@ -605,5 +604,7 @@ const compileRoot = ({
   });
 };
 
+exports.writeFileFromString = writeFileFromString;
+exports.getBabelPluginsFor = getBabelPluginsFor;
 exports.compileRoot = compileRoot;
 //# sourceMappingURL=index.js.map

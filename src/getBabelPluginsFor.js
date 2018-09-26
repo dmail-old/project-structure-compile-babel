@@ -9,16 +9,16 @@ const getPlugins = (options) => {
 }
 
 export const getBabelPluginsFor = ({
-  name = "node",
+  platformName = "node",
   // https://github.com/babel/babel/issues/7277
-  version = "8.0",
+  platformVersion = "8.0",
   moduleOutput = "commonjs", // "systemjs" for dev-server
 }) => {
   // https://babeljs.io/docs/en/next/babel-preset-env.html
   const { plugins } = getPlugins({
     useBuiltIns: false,
     targets: {
-      [name]: version,
+      [platformName]: platformVersion,
     },
     modules: moduleOutput,
     debug: false,
