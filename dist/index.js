@@ -536,6 +536,10 @@ const {
 } = require("@babel/core"); // rollup fails if using import here
 
 
+const metaPredicate = ({
+  compile
+}) => compile;
+
 const compileRoot = ({
   root,
   into = "dist",
@@ -567,9 +571,7 @@ const compileRoot = ({
   }).then(({
     forEachFileMatching: forEachFileMatching$$1
   }) => {
-    return forEachFileMatching$$1(({
-      build
-    }) => build, ({
+    return forEachFileMatching$$1(metaPredicate, ({
       absoluteName,
       relativeName
     }) => {

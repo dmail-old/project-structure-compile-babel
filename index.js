@@ -6,6 +6,8 @@ import { getBabelPluginsFor } from "./src/getBabelPluginsFor.js"
 
 const { transformAsync } = require("@babel/core") // rollup fails if using import here
 
+const metaPredicate = ({ compile }) => compile
+
 export const compileRoot = ({
   root,
   into = "dist",
@@ -24,42 +26,36 @@ export const compileRoot = ({
   }
 
   return createRoot({ root }).then(({ forEachFileMatching }) => {
-    return forEachFileMatching(
-      ({ build }) => build,
-      ({ absoluteName, relativeName }) => {
-        return getFileContentAsString(absoluteName).then((source) => {
-          const buildRelativeName = `${into}/${relativeName}`
-          const buildLocation = `${root}/${buildRelativeName}`
-          const sourceMapName = `${path.basename(relativeName)}.map`
-          const sourceMapLocationForSource = `${sourceMapName}`
-          const sourceMapLocation = `${root}/${into}/${relativeName}.map`
-          const sourceNameForSourceMap = path.relative(
-            path.dirname(sourceMapLocation),
-            absoluteName,
-          )
+    return forEachFileMatching(metaPredicate, ({ absoluteName, relativeName }) => {
+      return getFileContentAsString(absoluteName).then((source) => {
+        const buildRelativeName = `${into}/${relativeName}`
+        const buildLocation = `${root}/${buildRelativeName}`
+        const sourceMapName = `${path.basename(relativeName)}.map`
+        const sourceMapLocationForSource = `${sourceMapName}`
+        const sourceMapLocation = `${root}/${into}/${relativeName}.map`
+        const sourceNameForSourceMap = path.relative(path.dirname(sourceMapLocation), absoluteName)
 
-          return transpile({
-            code: source,
-            filename: absoluteName,
-            sourceFileName: sourceNameForSourceMap,
-          })
-            .then(({ code, map }) => {
-              if (map) {
-                code = `${code}
-//# sourceMappingURL=${sourceMapLocationForSource}`
-                return Promise.all([
-                  writeFileFromString(buildLocation, code),
-                  writeFileFromString(sourceMapLocation, JSON.stringify(map, null, "  ")),
-                ])
-              }
-
-              return writeFileFromString(buildLocation, code)
-            })
-            .then(() => {
-              console.log(`${relativeName} -> ${buildRelativeName} `)
-            })
+        return transpile({
+          code: source,
+          filename: absoluteName,
+          sourceFileName: sourceNameForSourceMap,
         })
-      },
-    )
+          .then(({ code, map }) => {
+            if (map) {
+              code = `${code}
+//# sourceMappingURL=${sourceMapLocationForSource}`
+              return Promise.all([
+                writeFileFromString(buildLocation, code),
+                writeFileFromString(sourceMapLocation, JSON.stringify(map, null, "  ")),
+              ])
+            }
+
+            return writeFileFromString(buildLocation, code)
+          })
+          .then(() => {
+            console.log(`${relativeName} -> ${buildRelativeName} `)
+          })
+      })
+    })
   })
 }
