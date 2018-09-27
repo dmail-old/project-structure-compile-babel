@@ -1,3 +1,13 @@
+// using this: https://github.com/faisalman/ua-parser-js
+// + require("@babel/preset-env/data/plugins.json")
+// we could know the required plugins
+// we could also get the list of feature from a given user agent string
+// and decide which group the user agent belongs to
+// we could create X groups
+// these groups would contains any given combination of plugins
+// and a browser would get this set of plugins
+// instead of the exact set it needs
+
 const presetEnv = require("@babel/preset-env") // rollup fails if using import here
 
 const getPlugins = (options) => {
