@@ -4,8 +4,8 @@ import { generateGroupForPlugins } from "./generateGroupForPlugins.js"
 import { limitGroup } from "./limitGroup.js"
 import { createGetScoreForGroupCompatMap } from "./createGetScoreForGroupCompatMap.js"
 import { versionIsBelow } from "./versionCompare.js"
+import availablePlugins from "@babel/preset-env/lib/available-plugins.js"
 
-const availablePlugins = require("@babel/preset-env/lib/available-plugins.js")
 const defaultPluginsData = require("@babel/preset-env/data/plugins.json")
 
 const defaultStats = {
@@ -41,18 +41,6 @@ export const createGetGroupForPlatform = (
     moduleOutput,
   } = {},
 ) => {
-  const groupWithEverything = {
-    pluginNames: requiredPluginNames,
-    compatMap: {},
-    plugins: requiredPluginNames.map((name) => availablePlugins[name]),
-  }
-
-  const groupWithNothing = {
-    pluginNames: [],
-    plugins: [],
-    compatMap: {},
-  }
-
   const plugins = Object.keys(pluginsData)
     .filter((pluginName) => {
       return requiredPluginNames.indexOf(pluginName) > -1
@@ -80,6 +68,18 @@ export const createGetGroupForPlatform = (
       pluginName: "transform-modules-systemjs",
       compatMap: {},
     })
+  }
+
+  const groupWithEverything = {
+    pluginNames: plugins.map(({ pluginName }) => pluginName),
+    compatMap: {},
+    plugins: plugins.map(({ pluginName }) => availablePlugins[pluginName]),
+  }
+
+  const groupWithNothing = {
+    pluginNames: [],
+    plugins: [],
+    compatMap: {},
   }
 
   const allGroups = generateGroupForPlugins(plugins)

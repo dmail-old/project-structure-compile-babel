@@ -57,4 +57,63 @@ const assert = require("assert")
   )
 }
 
+{
+  const { getGroupForPlatform } = createGetGroupForPlatform({
+    requiredPluginNames: ["a"],
+    pluginsData: {
+      a: {
+        chrome: "60",
+      },
+    },
+    size: 1,
+  })
+
+  assert.deepEqual(
+    getGroupForPlatform({
+      platformName: "firefox",
+      platformVersion: "70", // even if chrome 41, we serve a because in same group than chrome 42
+    }).pluginNames.sort(),
+    ["a"],
+  )
+}
+
+{
+  const { getGroupForPlatform } = createGetGroupForPlatform({
+    requiredPluginNames: ["a"],
+    pluginsData: {
+      a: {},
+    },
+    size: 1,
+  })
+
+  assert.deepEqual(
+    getGroupForPlatform({
+      platformName: "chrome",
+      platformVersion: "50", // even if chrome 41, we serve a because in same group than chrome 42
+    }).pluginNames.sort(),
+    ["a"],
+  )
+}
+
+{
+  const { getGroupForPlatform } = createGetGroupForPlatform({
+    requiredPluginNames: ["a"],
+    moduleOutput: "commonjs",
+    pluginsData: {
+      a: {
+        chrome: "42",
+      },
+    },
+    size: 1,
+  })
+
+  assert.deepEqual(
+    getGroupForPlatform({
+      platformName: "chrome",
+      platformVersion: "41", // even if chrome 41, we serve a because in same group than chrome 42
+    }).pluginNames.sort(),
+    ["a", "transform-modules-commonjs"],
+  )
+}
+
 console.log("passed")

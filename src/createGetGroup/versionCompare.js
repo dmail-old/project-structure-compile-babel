@@ -1,9 +1,9 @@
 const semver = (versionString) => {
   const parts = versionString.split(".")
   return {
-    major: parseInt(parts[0]),
-    minor: parts[1] ? parseInt(parts[1]) : 0,
-    patch: parts[2] ? parseInt(parts[2]) : 0,
+    major: Number(parts[0]),
+    minor: parts[1] ? Number(parts[1]) : 0,
+    patch: parts[2] ? Number(parts[2]) : 0,
   }
 }
 

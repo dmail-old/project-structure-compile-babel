@@ -1,5 +1,7 @@
 import { versionIsAbove } from "./versionCompare.js"
 
+const PLATFORM_NAMES = ["chrome", "edge", "firefox", "safari", "node", "ios", "opera", "electron"]
+
 /*
 it returns
 {
@@ -11,13 +13,15 @@ const getPlatformCompatMap = (plugins, platformName) => {
   const platformCompatMap = {}
 
   plugins.forEach(({ pluginName, compatMap }) => {
-    if (platformName in compatMap === false) return
-
-    const compatVersion = compatMap[platformName]
-    if (compatVersion in platformCompatMap) {
-      platformCompatMap[compatVersion].push(pluginName)
+    if (platformName in compatMap) {
+      const compatVersion = compatMap[platformName]
+      if (compatVersion in platformCompatMap) {
+        platformCompatMap[compatVersion].push(pluginName)
+      } else {
+        platformCompatMap[compatVersion] = [pluginName]
+      }
     } else {
-      platformCompatMap[compatVersion] = [pluginName]
+      platformCompatMap.Infinity = [pluginName]
     }
   })
 
@@ -26,6 +30,7 @@ const getPlatformCompatMap = (plugins, platformName) => {
     const pluginNames = platformCompatMap[version]
     plugins.forEach(({ pluginName, compatMap }) => {
       if (pluginNames.indexOf(pluginName) > -1) return
+      if (platformName in compatMap === false) return
 
       const compatVersion = compatMap[platformName]
       if (versionIsAbove(version, compatVersion)) {
@@ -67,9 +72,7 @@ it returns
 }
 */
 export const generateGroupForPlugins = (plugins) => {
-  const platformNames = getPlatformNames(plugins)
-
-  const platformAndCompatMap = platformNames.map((platformName) => {
+  const platformAndCompatMap = PLATFORM_NAMES.map((platformName) => {
     return {
       platformName,
       platformCompatMap: getPlatformCompatMap(plugins, platformName),
