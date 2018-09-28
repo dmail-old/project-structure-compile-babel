@@ -579,7 +579,8 @@ const createGetGroupForPlatform = ({
   };
 
   return {
-    getGroupForPlatform
+    getGroupForPlatform,
+    getAllGroup: () => [groupWithEverything].concat(_toConsumableArray(groups), [groupWithNothing])
   };
 };
 

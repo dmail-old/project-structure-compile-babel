@@ -115,5 +115,6 @@ export const createGetGroupForPlatform = (
 
   return {
     getGroupForPlatform,
+    getAllGroup: () => [groupWithEverything, ...groups, groupWithNothing],
   }
 }
