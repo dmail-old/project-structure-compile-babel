@@ -96,16 +96,18 @@ export const createGetGroupForPlatform = (
       return groupWithEverything
     }
 
-    const groupForPlatform = groups.find(({ compatMap }) => {
+    const groupWithVersionAbovePlatformVersion = groups.find(({ compatMap }) => {
       if (platformName in compatMap === false) {
         return false
       }
       return versionIsBelow(platformVersion, compatMap[platformName])
     })
-    if (groupForPlatform) {
+    if (groupWithVersionAbovePlatformVersion) {
       return {
-        ...groupForPlatform,
-        plugins: groupForPlatform.pluginNames.map((name) => availablePlugins[name]),
+        ...groupWithVersionAbovePlatformVersion,
+        plugins: groupWithVersionAbovePlatformVersion.pluginNames.map(
+          (name) => availablePlugins[name],
+        ),
       }
     }
     return groupWithNothing

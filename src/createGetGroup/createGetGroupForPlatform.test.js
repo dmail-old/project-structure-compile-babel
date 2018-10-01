@@ -71,7 +71,7 @@ const assert = require("assert")
   assert.deepEqual(
     getGroupForPlatform({
       platformName: "firefox",
-      platformVersion: "70", // even if chrome 41, we serve a because in same group than chrome 42
+      platformVersion: "70",
     }).pluginNames.sort(),
     ["a"],
   )
