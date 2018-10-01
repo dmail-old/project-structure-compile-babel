@@ -1,10 +1,20 @@
-const semver = (versionString) => {
-  const parts = versionString.split(".")
-  return {
-    major: Number(parts[0]),
-    minor: parts[1] ? Number(parts[1]) : 0,
-    patch: parts[2] ? Number(parts[2]) : 0,
+const semver = (version) => {
+  if (typeof version === "number") {
+    return {
+      major: version,
+      minor: 0,
+      patch: 0,
+    }
   }
+  if (typeof version === "string") {
+    const parts = version.split(".")
+    return {
+      major: Number(parts[0]),
+      minor: parts[1] ? Number(parts[1]) : 0,
+      patch: parts[2] ? Number(parts[2]) : 0,
+    }
+  }
+  throw new TypeError(`version must be a number or a string, got: ${typeof version}`)
 }
 
 export const compareVersion = (versionA, versionB) => {

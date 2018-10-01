@@ -1,3 +1,5 @@
+import { versionIsAbove } from "./versionCompare.js"
+
 const mergePluginNames = (pluginList, secondPluginList) => {
   return [...pluginList, ...secondPluginList.filter((plugin) => pluginList.indexOf(plugin) === -1)]
 }
@@ -27,10 +29,6 @@ const getChunkSizes = (array, size) => {
 }
 
 export const limitGroup = (groups, getScoreForGroup, count = 4) => {
-  if (groups.length <= count) {
-    return groups
-  }
-
   let i = 0
   const chunkSizes = getChunkSizes(groups, count).reverse()
   const finalGroups = []
@@ -52,13 +50,13 @@ export const limitGroup = (groups, getScoreForGroup, count = 4) => {
           versions.forEach((platformVersion) => {
             let merged = false
             if (platformName in mergedCompatMap) {
-              const mergedVersions = mergedCompatMap[platformName]
-              if (mergedVersions.indexOf(platformVersion) === -1) {
-                mergedVersions.push(platformVersion)
+              const highestVersion = mergedCompatMap[platformName]
+              if (versionIsAbove(platformVersion, highestVersion)) {
+                mergedCompatMap[platformName] = String(platformVersion)
                 merged = true
               }
             } else {
-              mergedCompatMap[platformName] = [platformVersion]
+              mergedCompatMap[platformName] = String(platformVersion)
               merged = true
             }
             if (merged) {

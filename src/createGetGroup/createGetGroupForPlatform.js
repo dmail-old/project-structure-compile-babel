@@ -72,8 +72,8 @@ export const createGetGroupForPlatform = (
 
   const groupWithEverything = {
     pluginNames: plugins.map(({ pluginName }) => pluginName),
-    compatMap: {},
     plugins: plugins.map(({ pluginName }) => availablePlugins[pluginName]),
+    compatMap: {},
   }
 
   const groupWithNothing = {
@@ -100,9 +100,7 @@ export const createGetGroupForPlatform = (
       if (platformName in compatMap === false) {
         return false
       }
-      const versions = compatMap[platformName]
-      const highestVersion = versions.sort((a, b) => versionIsBelow(a, b))[0]
-      return versionIsBelow(platformVersion, highestVersion)
+      return versionIsBelow(platformVersion, compatMap[platformName])
     })
     if (groupForPlatform) {
       return {

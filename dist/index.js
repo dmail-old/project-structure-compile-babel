@@ -165,13 +165,25 @@ function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance");
 }
 
-const semver = versionString => {
-  const parts = versionString.split(".");
-  return {
-    major: Number(parts[0]),
-    minor: parts[1] ? Number(parts[1]) : 0,
-    patch: parts[2] ? Number(parts[2]) : 0
-  };
+const semver = version => {
+  if (typeof version === "number") {
+    return {
+      major: version,
+      minor: 0,
+      patch: 0
+    };
+  }
+
+  if (typeof version === "string") {
+    const parts = version.split(".");
+    return {
+      major: Number(parts[0]),
+      minor: parts[1] ? Number(parts[1]) : 0,
+      patch: parts[2] ? Number(parts[2]) : 0
+    };
+  }
+
+  throw new TypeError(`version must be a number or a string, got: ${typeof version}`);
 };
 
 const compareVersion = (versionA, versionB) => {
@@ -351,10 +363,6 @@ const getChunkSizes = (array, size) => {
 };
 
 const limitGroup = (groups, getScoreForGroup, count = 4) => {
-  if (groups.length <= count) {
-    return groups;
-  }
-
   let i = 0;
   const chunkSizes = getChunkSizes(groups, count).reverse();
   const finalGroups = [];
@@ -376,14 +384,14 @@ const limitGroup = (groups, getScoreForGroup, count = 4) => {
           let merged = false;
 
           if (platformName in mergedCompatMap) {
-            const mergedVersions = mergedCompatMap[platformName];
+            const highestVersion = mergedCompatMap[platformName];
 
-            if (mergedVersions.indexOf(platformVersion) === -1) {
-              mergedVersions.push(platformVersion);
+            if (versionIsAbove(platformVersion, highestVersion)) {
+              mergedCompatMap[platformName] = String(platformVersion);
               merged = true;
             }
           } else {
-            mergedCompatMap[platformName] = [platformVersion];
+            mergedCompatMap[platformName] = String(platformVersion);
             merged = true;
           }
 
@@ -529,10 +537,10 @@ const createGetGroupForPlatform = ({
     pluginNames: plugins.map(({
       pluginName
     }) => pluginName),
-    compatMap: {},
     plugins: plugins.map(({
       pluginName
-    }) => availablePlugins[pluginName])
+    }) => availablePlugins[pluginName]),
+    compatMap: {}
   };
   const groupWithNothing = {
     pluginNames: [],
@@ -564,9 +572,7 @@ const createGetGroupForPlatform = ({
         return false;
       }
 
-      const versions = compatMap[platformName];
-      const highestVersion = versions.sort((a, b) => versionIsBelow(a, b))[0];
-      return versionIsBelow(platformVersion, highestVersion);
+      return versionIsBelow(platformVersion, compatMap[platformName]);
     });
 
     if (groupForPlatform) {
