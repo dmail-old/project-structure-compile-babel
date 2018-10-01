@@ -595,12 +595,11 @@ const compileFileStructure = ({
   } = createGetGroupForPlatform({
     moduleOutput
   });
-  const {
-    plugins
-  } = getGroupForPlatform({
+  const group = getGroupForPlatform({
     platformName,
     platformVersion
   });
+  const plugins = getPluginsFromNames(group.pluginNames);
 
   const transpile = ({
     code,

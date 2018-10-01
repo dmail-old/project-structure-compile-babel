@@ -2,7 +2,10 @@ import path from "path"
 import { createFileStructure } from "@dmail/project-structure"
 import { getFileContentAsString } from "./getFileContentAsString.js"
 import { writeFileFromString } from "./writeFileFromString.js"
-import { createGetGroupForPlatform } from "./createGetGroup/createGetGroupForPlatform.js"
+import {
+  createGetGroupForPlatform,
+  getPluginsFromNames,
+} from "./createGetGroup/createGetGroupForPlatform.js"
 
 const { transformAsync } = require("@babel/core") // rollup fails if using import here
 
@@ -19,10 +22,11 @@ export const compileFileStructure = ({
     moduleOutput,
   })
 
-  const { plugins } = getGroupForPlatform({
+  const group = getGroupForPlatform({
     platformName,
     platformVersion,
   })
+  const plugins = getPluginsFromNames(group.pluginNames)
 
   const transpile = ({ code, filename, sourceFileName }) => {
     return transformAsync(code, {
