@@ -1,15 +1,15 @@
 import path from "path"
-import { createRoot } from "@dmail/project-structure"
+import { createFileStructure } from "@dmail/project-structure"
 import { getFileContentAsString } from "./getFileContentAsString.js"
 import { writeFileFromString } from "./writeFileFromString.js"
 import { createGetGroupForPlatform } from "./createGetGroup/createGetGroupForPlatform.js"
 
 const { transformAsync } = require("@babel/core") // rollup fails if using import here
 
-const metaPredicate = ({ compile }) => compile
-
-export const compileRoot = ({
+export const compileFileStructure = ({
   root,
+  config = "structure.config.js",
+  predicate = ({ compile }) => compile,
   into = "dist",
   platformName = "node",
   platformVersion = "8.0",
@@ -65,7 +65,7 @@ export const compileRoot = ({
     })
   }
 
-  return createRoot({ root }).then(({ forEachFileMatching }) => {
-    return forEachFileMatching(metaPredicate, compileAndWrite)
+  return createFileStructure({ root, config }).then(({ forEachFileMatching }) => {
+    return forEachFileMatching(predicate, compileAndWrite)
   })
 }

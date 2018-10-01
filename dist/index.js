@@ -595,12 +595,12 @@ const {
 } = require("@babel/core"); // rollup fails if using import here
 
 
-const metaPredicate = ({
-  compile
-}) => compile;
-
-const compileRoot = ({
+const compileFileStructure = ({
   root,
+  config = "structure.config.js",
+  predicate = ({
+    compile
+  }) => compile,
   into = "dist",
   platformName = "node",
   platformVersion = "8.0",
@@ -663,17 +663,18 @@ const compileRoot = ({
     });
   };
 
-  return projectStructure.createRoot({
-    root
+  return projectStructure.createFileStructure({
+    root,
+    config
   }).then(({
     forEachFileMatching
   }) => {
-    return forEachFileMatching(metaPredicate, compileAndWrite);
+    return forEachFileMatching(predicate, compileAndWrite);
   });
 };
 
 exports.writeFileFromString = writeFileFromString;
-exports.compileRoot = compileRoot;
+exports.compileFileStructure = compileFileStructure;
 exports.createGetScoreForGroupCompatMap = createGetScoreForGroupCompatMap;
 exports.limitGroup = limitGroup;
 exports.createGetGroupForPlatform = createGetGroupForPlatform;
