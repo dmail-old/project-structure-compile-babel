@@ -6,7 +6,7 @@ import { createGetScoreForGroupCompatMap } from "./createGetScoreForGroupCompatM
 import { versionIsBelow } from "./versionCompare.js"
 import availablePlugins from "@babel/preset-env/lib/available-plugins.js"
 
-const defaultPluginsData = require("@babel/preset-env/data/plugins.json")
+export const defaultPluginsData = require("@babel/preset-env/data/plugins.json")
 
 const defaultStats = {
   chrome: {
@@ -31,6 +31,9 @@ const defaultStats = {
   },
   other: 0.001,
 }
+
+export const getPluginsFromNames = (pluginNames) =>
+  pluginNames.map((name) => availablePlugins[name])
 
 export const createGetGroupForPlatform = (
   {
@@ -72,13 +75,11 @@ export const createGetGroupForPlatform = (
 
   const groupWithEverything = {
     pluginNames: plugins.map(({ pluginName }) => pluginName),
-    plugins: plugins.map(({ pluginName }) => availablePlugins[pluginName]),
     compatMap: {},
   }
 
   const groupWithNothing = {
     pluginNames: [],
-    plugins: [],
     compatMap: {},
   }
 
@@ -103,12 +104,7 @@ export const createGetGroupForPlatform = (
       return versionIsBelow(platformVersion, compatMap[platformName])
     })
     if (groupWithVersionAbovePlatformVersion) {
-      return {
-        ...groupWithVersionAbovePlatformVersion,
-        plugins: groupWithVersionAbovePlatformVersion.pluginNames.map(
-          (name) => availablePlugins[name],
-        ),
-      }
+      return groupWithVersionAbovePlatformVersion
     }
     return groupWithNothing
   }

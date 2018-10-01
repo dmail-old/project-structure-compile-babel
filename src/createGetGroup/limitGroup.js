@@ -4,13 +4,6 @@ const mergePluginNames = (pluginList, secondPluginList) => {
   return [...pluginList, ...secondPluginList.filter((plugin) => pluginList.indexOf(plugin) === -1)]
 }
 
-const removeFromArray = (array, value) => {
-  const index = array.indexOf(value)
-  if (index > -1) {
-    array.splice(index, 1)
-  }
-}
-
 const getChunkSizes = (array, size) => {
   let i = 0
   const chunkSize = Math.ceil(array.length / size)
@@ -28,6 +21,27 @@ const getChunkSizes = (array, size) => {
   return chunkSizes
 }
 
+const groupReducer = (previous, group) => {
+  const result = {}
+  result.pluginNames = mergePluginNames(previous.pluginNames, group.pluginNames).sort()
+  const mergedCompatMap = { ...previous.compatMap }
+  Object.keys(group.compatMap).forEach((platformName) => {
+    const versions = group.compatMap[platformName]
+    versions.forEach((platformVersion) => {
+      if (platformName in mergedCompatMap) {
+        const highestVersion = mergedCompatMap[platformName]
+        if (versionIsAbove(platformVersion, highestVersion)) {
+          mergedCompatMap[platformName] = String(platformVersion)
+        }
+      } else {
+        mergedCompatMap[platformName] = String(platformVersion)
+      }
+    })
+  })
+  result.compatMap = mergedCompatMap
+  return result
+}
+
 export const limitGroup = (groups, getScoreForGroup, count = 4) => {
   let i = 0
   const chunkSizes = getChunkSizes(groups, count).reverse()
@@ -35,40 +49,30 @@ export const limitGroup = (groups, getScoreForGroup, count = 4) => {
   let remainingGroups = groups
 
   while (i < chunkSizes.length) {
-    const sortedRemainingGroups = remainingGroups
-      .sort((a, b) => getScoreForGroup(a) - getScoreForGroup(b))
-      .reverse()
+    const sortedRemainingGroups = remainingGroups.sort(
+      (a, b) => getScoreForGroup(b) - getScoreForGroup(a),
+    )
     const groupsToMerge = sortedRemainingGroups.slice(0, chunkSizes[i])
+    remainingGroups = sortedRemainingGroups.slice(chunkSizes[i])
     const mergedGroup = groupsToMerge.reduce(
       // eslint-disable-next-line no-loop-func
       (previous, group, index) => {
-        const result = {}
-        result.pluginNames = mergePluginNames(previous.pluginNames, group.pluginNames)
-        const mergedCompatMap = { ...previous.compatMap }
-        Object.keys(group.compatMap).forEach((platformName) => {
-          const versions = group.compatMap[platformName]
-          versions.forEach((platformVersion) => {
-            let merged = false
-            if (platformName in mergedCompatMap) {
-              const highestVersion = mergedCompatMap[platformName]
-              if (versionIsAbove(platformVersion, highestVersion)) {
-                mergedCompatMap[platformName] = String(platformVersion)
-                merged = true
-              }
-            } else {
-              mergedCompatMap[platformName] = String(platformVersion)
-              merged = true
-            }
-            if (merged) {
-              sortedRemainingGroups.slice(index + 1).forEach((nextGroup) => {
-                if (platformName in nextGroup.compatMap) {
-                  removeFromArray(nextGroup.compatMap[platformName], platformVersion)
-                }
+        const result = groupReducer(previous, group, index)
+
+        // remove all occurences to version or oldest version in next groups
+        Object.keys(result.compatMap).forEach((platformName) => {
+          const platformVersion = result.compatMap[platformName]
+
+          remainingGroups
+            .slice(index)
+            .filter(({ compatMap }) => platformName in compatMap)
+            .forEach(({ compatMap }) => {
+              compatMap[platformName] = compatMap[platformName].filter((nextGroupversion) => {
+                return versionIsAbove(nextGroupversion, platformVersion)
               })
-            }
-          })
+            })
         })
-        result.compatMap = mergedCompatMap
+
         return result
       },
       {
@@ -76,8 +80,9 @@ export const limitGroup = (groups, getScoreForGroup, count = 4) => {
         compatMap: {},
       },
     )
-    finalGroups.push(mergedGroup)
-    remainingGroups = sortedRemainingGroups.slice(chunkSizes[i])
+    if (Object.keys(mergedGroup.compatMap).length) {
+      finalGroups.push(mergedGroup)
+    }
     i++
   }
 

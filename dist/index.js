@@ -243,31 +243,24 @@ const getPlatformCompatMap = (plugins, platformName) => {
     pluginName,
     compatMap
   }) => {
-    if (platformName in compatMap) {
-      const compatVersion = compatMap[platformName];
-
-      if (compatVersion in platformCompatMap) {
-        platformCompatMap[compatVersion].push(pluginName);
-      } else {
-        platformCompatMap[compatVersion] = [pluginName];
-      }
-    } else {
-      platformCompatMap.Infinity = [pluginName];
-    }
-  }); // add plugin not directly specified as being present for versions
-
+    const compatVersion = platformName in compatMap ? compatMap[platformName] : "Infinity";
+    platformCompatMap[compatVersion] = _toConsumableArray(compatVersion in platformCompatMap ? platformCompatMap[compatVersion] : []).concat([pluginName]).sort();
+  });
   Object.keys(platformCompatMap).forEach(version => {
     const pluginNames = platformCompatMap[version];
-    plugins.forEach(({
+    const pluginsUnhandled = plugins.filter(({
+      pluginName
+    }) => {
+      return pluginNames.indexOf(pluginName) === -1;
+    });
+    pluginsUnhandled.forEach(({
       pluginName,
       compatMap
     }) => {
-      if (pluginNames.indexOf(pluginName) > -1) return;
-      if (platformName in compatMap === false) return;
-      const compatVersion = compatMap[platformName];
+      const compatVersion = compatMap[platformName] || "Infinity";
 
       if (versionIsAbove(version, compatVersion)) {
-        pluginNames.push(pluginName);
+        platformCompatMap[version] = _toConsumableArray(platformCompatMap[version]).concat([pluginName]).sort();
       }
     });
   });
@@ -305,19 +298,14 @@ const generateGroupForPlugins = plugins => {
     platformCompatMap
   }) => {
     Object.keys(platformCompatMap).forEach(version => {
-      const pluginNames = platformCompatMap[version].sort();
+      const pluginNames = platformCompatMap[version];
       const existingGroup = groups.find(group => {
         return group.pluginNames.join("") === pluginNames.join("");
       });
 
       if (existingGroup) {
         const groupCompatMap = existingGroup.compatMap;
-
-        if (platformName in groupCompatMap) {
-          groupCompatMap[platformName].push(version);
-        } else {
-          groupCompatMap[platformName] = [version];
-        }
+        groupCompatMap[platformName] = _toConsumableArray(platformName in groupCompatMap ? groupCompatMap[platformName] : []).concat([version]);
       } else {
         groups.push({
           pluginNames,
@@ -333,14 +321,6 @@ const generateGroupForPlugins = plugins => {
 
 const mergePluginNames = (pluginList, secondPluginList) => {
   return _toConsumableArray(pluginList).concat(_toConsumableArray(secondPluginList.filter(plugin => pluginList.indexOf(plugin) === -1)));
-};
-
-const removeFromArray = (array, value) => {
-  const index = array.indexOf(value);
-
-  if (index > -1) {
-    array.splice(index, 1);
-  }
 };
 
 const getChunkSizes = (array, size) => {
@@ -362,6 +342,30 @@ const getChunkSizes = (array, size) => {
   return chunkSizes;
 };
 
+const groupReducer = (previous, group) => {
+  const result = {};
+  result.pluginNames = mergePluginNames(previous.pluginNames, group.pluginNames).sort();
+
+  const mergedCompatMap = _objectSpread({}, previous.compatMap);
+
+  Object.keys(group.compatMap).forEach(platformName => {
+    const versions = group.compatMap[platformName];
+    versions.forEach(platformVersion => {
+      if (platformName in mergedCompatMap) {
+        const highestVersion = mergedCompatMap[platformName];
+
+        if (versionIsAbove(platformVersion, highestVersion)) {
+          mergedCompatMap[platformName] = String(platformVersion);
+        }
+      } else {
+        mergedCompatMap[platformName] = String(platformVersion);
+      }
+    });
+  });
+  result.compatMap = mergedCompatMap;
+  return result;
+};
+
 const limitGroup = (groups, getScoreForGroup, count = 4) => {
   let i = 0;
   const chunkSizes = getChunkSizes(groups, count).reverse();
@@ -369,49 +373,35 @@ const limitGroup = (groups, getScoreForGroup, count = 4) => {
   let remainingGroups = groups;
 
   while (i < chunkSizes.length) {
-    const sortedRemainingGroups = remainingGroups.sort((a, b) => getScoreForGroup(a) - getScoreForGroup(b)).reverse();
+    const sortedRemainingGroups = remainingGroups.sort((a, b) => getScoreForGroup(b) - getScoreForGroup(a));
     const groupsToMerge = sortedRemainingGroups.slice(0, chunkSizes[i]);
+    remainingGroups = sortedRemainingGroups.slice(chunkSizes[i]);
     const mergedGroup = groupsToMerge.reduce( // eslint-disable-next-line no-loop-func
     (previous, group, index) => {
-      const result = {};
-      result.pluginNames = mergePluginNames(previous.pluginNames, group.pluginNames);
+      const result = groupReducer(previous, group, index); // remove all occurences to version or oldest version in next groups
 
-      const mergedCompatMap = _objectSpread({}, previous.compatMap);
-
-      Object.keys(group.compatMap).forEach(platformName => {
-        const versions = group.compatMap[platformName];
-        versions.forEach(platformVersion => {
-          let merged = false;
-
-          if (platformName in mergedCompatMap) {
-            const highestVersion = mergedCompatMap[platformName];
-
-            if (versionIsAbove(platformVersion, highestVersion)) {
-              mergedCompatMap[platformName] = String(platformVersion);
-              merged = true;
-            }
-          } else {
-            mergedCompatMap[platformName] = String(platformVersion);
-            merged = true;
-          }
-
-          if (merged) {
-            sortedRemainingGroups.slice(index + 1).forEach(nextGroup => {
-              if (platformName in nextGroup.compatMap) {
-                removeFromArray(nextGroup.compatMap[platformName], platformVersion);
-              }
-            });
-          }
+      Object.keys(result.compatMap).forEach(platformName => {
+        const platformVersion = result.compatMap[platformName];
+        remainingGroups.slice(index).filter(({
+          compatMap
+        }) => platformName in compatMap).forEach(({
+          compatMap
+        }) => {
+          compatMap[platformName] = compatMap[platformName].filter(nextGroupversion => {
+            return versionIsAbove(nextGroupversion, platformVersion);
+          });
         });
       });
-      result.compatMap = mergedCompatMap;
       return result;
     }, {
       pluginNames: [],
       compatMap: {}
     });
-    finalGroups.push(mergedGroup);
-    remainingGroups = sortedRemainingGroups.slice(chunkSizes[i]);
+
+    if (Object.keys(mergedGroup.compatMap).length) {
+      finalGroups.push(mergedGroup);
+    }
+
     i++;
   }
 
@@ -474,7 +464,6 @@ const createGetScoreForGroupCompatMap = stats => {
 };
 
 const defaultPluginsData = require("@babel/preset-env/data/plugins.json");
-
 const defaultStats = {
   chrome: {
     "51": 0.6,
@@ -499,6 +488,7 @@ const defaultStats = {
   },
   other: 0.001
 };
+const getPluginsFromNames = pluginNames => pluginNames.map(name => availablePlugins[name]);
 const createGetGroupForPlatform = ({
   stats = defaultStats,
   requiredPluginNames = Object.keys(availablePlugins),
@@ -537,14 +527,10 @@ const createGetGroupForPlatform = ({
     pluginNames: plugins.map(({
       pluginName
     }) => pluginName),
-    plugins: plugins.map(({
-      pluginName
-    }) => availablePlugins[pluginName]),
     compatMap: {}
   };
   const groupWithNothing = {
     pluginNames: [],
-    plugins: [],
     compatMap: {}
   };
   const allGroups = generateGroupForPlugins(plugins);
@@ -576,9 +562,7 @@ const createGetGroupForPlatform = ({
     });
 
     if (groupWithVersionAbovePlatformVersion) {
-      return _objectSpread({}, groupWithVersionAbovePlatformVersion, {
-        plugins: groupWithVersionAbovePlatformVersion.pluginNames.map(name => availablePlugins[name])
-      });
+      return groupWithVersionAbovePlatformVersion;
     }
 
     return groupWithNothing;
@@ -677,7 +661,9 @@ exports.writeFileFromString = writeFileFromString;
 exports.compileFileStructure = compileFileStructure;
 exports.createGetScoreForGroupCompatMap = createGetScoreForGroupCompatMap;
 exports.limitGroup = limitGroup;
+exports.defaultPluginsData = defaultPluginsData;
 exports.createGetGroupForPlatform = createGetGroupForPlatform;
+exports.getPluginsFromNames = getPluginsFromNames;
 exports.versionIsAbove = versionIsAbove;
 exports.versionIsBelow = versionIsBelow;
 //# sourceMappingURL=index.js.map

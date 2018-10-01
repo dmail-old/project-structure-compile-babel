@@ -13,45 +13,27 @@ const getPlatformCompatMap = (plugins, platformName) => {
   const platformCompatMap = {}
 
   plugins.forEach(({ pluginName, compatMap }) => {
-    if (platformName in compatMap) {
-      const compatVersion = compatMap[platformName]
-      if (compatVersion in platformCompatMap) {
-        platformCompatMap[compatVersion].push(pluginName)
-      } else {
-        platformCompatMap[compatVersion] = [pluginName]
-      }
-    } else {
-      platformCompatMap.Infinity = [pluginName]
-    }
+    const compatVersion = platformName in compatMap ? compatMap[platformName] : "Infinity"
+    platformCompatMap[compatVersion] = [
+      ...(compatVersion in platformCompatMap ? platformCompatMap[compatVersion] : []),
+      pluginName,
+    ].sort()
   })
 
-  // add plugin not directly specified as being present for versions
   Object.keys(platformCompatMap).forEach((version) => {
     const pluginNames = platformCompatMap[version]
-    plugins.forEach(({ pluginName, compatMap }) => {
-      if (pluginNames.indexOf(pluginName) > -1) return
-      if (platformName in compatMap === false) return
-
-      const compatVersion = compatMap[platformName]
+    const pluginsUnhandled = plugins.filter(({ pluginName }) => {
+      return pluginNames.indexOf(pluginName) === -1
+    })
+    pluginsUnhandled.forEach(({ pluginName, compatMap }) => {
+      const compatVersion = compatMap[platformName] || "Infinity"
       if (versionIsAbove(version, compatVersion)) {
-        pluginNames.push(pluginName)
+        platformCompatMap[version] = [...platformCompatMap[version], pluginName].sort()
       }
     })
   })
 
   return platformCompatMap
-}
-
-const getPlatformNames = (plugins) => {
-  const names = []
-  plugins.forEach(({ compatMap }) => {
-    Object.keys(compatMap).forEach((platformName) => {
-      if (names.indexOf(platformName) === -1) {
-        names.push(platformName)
-      }
-    })
-  })
-  return names
 }
 
 /*
@@ -82,17 +64,16 @@ export const generateGroupForPlugins = (plugins) => {
   const groups = []
   platformAndCompatMap.forEach(({ platformName, platformCompatMap }) => {
     Object.keys(platformCompatMap).forEach((version) => {
-      const pluginNames = platformCompatMap[version].sort()
+      const pluginNames = platformCompatMap[version]
       const existingGroup = groups.find((group) => {
         return group.pluginNames.join("") === pluginNames.join("")
       })
       if (existingGroup) {
         const groupCompatMap = existingGroup.compatMap
-        if (platformName in groupCompatMap) {
-          groupCompatMap[platformName].push(version)
-        } else {
-          groupCompatMap[platformName] = [version]
-        }
+        groupCompatMap[platformName] = [
+          ...(platformName in groupCompatMap ? groupCompatMap[platformName] : []),
+          version,
+        ]
       } else {
         groups.push({
           pluginNames,

@@ -116,4 +116,28 @@ const assert = require("assert")
   )
 }
 
+{
+  const { getGroupForPlatform } = createGetGroupForPlatform({
+    requiredPluginNames: ["a", "b"],
+    pluginsData: {
+      a: {
+        chrome: "42",
+      },
+      b: {},
+      c: {
+        chrome: "43",
+      },
+    },
+    size: 4,
+  })
+
+  assert.deepEqual(
+    getGroupForPlatform({
+      platformName: "chrome",
+      platformVersion: "45",
+    }).pluginNames.sort(),
+    ["a", "b"],
+  )
+}
+
 console.log("passed")
