@@ -342,58 +342,39 @@ const getChunkSizes = (array, size) => {
   return chunkSizes;
 };
 
+const highestVersion = (a, b) => {
+  return versionIsAbove(a, b) ? a : b;
+};
+
 const groupReducer = (previous, group) => {
-  const result = {};
-  result.pluginNames = mergePluginNames(previous.pluginNames, group.pluginNames).sort();
+  const pluginNames = mergePluginNames(previous.pluginNames, group.pluginNames).sort();
+  const previousCompatMap = previous.compatMap;
+  const groupCompatMap = group.compatMap;
 
-  const mergedCompatMap = _objectSpread({}, previous.compatMap);
+  const compatMap = _objectSpread({}, previousCompatMap);
 
-  Object.keys(group.compatMap).forEach(platformName => {
-    const versions = group.compatMap[platformName];
-    versions.forEach(platformVersion => {
-      if (platformName in mergedCompatMap) {
-        const highestVersion = mergedCompatMap[platformName];
-
-        if (versionIsAbove(platformVersion, highestVersion)) {
-          mergedCompatMap[platformName] = String(platformVersion);
-        }
-      } else {
-        mergedCompatMap[platformName] = String(platformVersion);
-      }
+  Object.keys(groupCompatMap).forEach(platformName => {
+    groupCompatMap[platformName].forEach(platformVersion => {
+      compatMap[platformName] = String(platformName in compatMap ? highestVersion(compatMap[platformName], platformVersion) : platformVersion);
     });
   });
-  result.compatMap = mergedCompatMap;
-  return result;
+  return {
+    pluginNames,
+    compatMap
+  };
 };
 
 const limitGroup = (groups, getScoreForGroup, count = 4) => {
   let i = 0;
   const chunkSizes = getChunkSizes(groups, count).reverse();
   const finalGroups = [];
-  let remainingGroups = groups;
+  const sortedGroups = groups.sort((a, b) => getScoreForGroup(b) - getScoreForGroup(a));
+  let remainingGroups = sortedGroups;
 
   while (i < chunkSizes.length) {
-    const sortedRemainingGroups = remainingGroups.sort((a, b) => getScoreForGroup(b) - getScoreForGroup(a));
-    const groupsToMerge = sortedRemainingGroups.slice(0, chunkSizes[i]);
-    remainingGroups = sortedRemainingGroups.slice(chunkSizes[i]);
-    const mergedGroup = groupsToMerge.reduce( // eslint-disable-next-line no-loop-func
-    (previous, group, index) => {
-      const result = groupReducer(previous, group, index); // remove all occurences to version or oldest version in next groups
-
-      Object.keys(result.compatMap).forEach(platformName => {
-        const platformVersion = result.compatMap[platformName];
-        remainingGroups.slice(index).filter(({
-          compatMap
-        }) => platformName in compatMap).forEach(({
-          compatMap
-        }) => {
-          compatMap[platformName] = compatMap[platformName].filter(nextGroupversion => {
-            return versionIsAbove(nextGroupversion, platformVersion);
-          });
-        });
-      });
-      return result;
-    }, {
+    const groupsToMerge = remainingGroups.slice(0, chunkSizes[i]);
+    remainingGroups = remainingGroups.slice(chunkSizes[i]);
+    const mergedGroup = groupsToMerge.reduce(groupReducer, {
       pluginNames: [],
       compatMap: {}
     });
@@ -415,7 +396,7 @@ const createGetScoreFromVersionUsage = stats => {
     return () => null;
   }
 
-  const sortedVersions = versionNames.sort((versionA, versionB) => versionIsAbove(versionA, versionB)).reverse();
+  const sortedVersions = versionNames.sort((versionA, versionB) => versionIsBelow(versionA, versionB));
   const highestVersion = sortedVersions.shift();
   return platformVersion => {
     if (platformVersion === highestVersion || versionIsAbove(platformVersion, highestVersion)) {

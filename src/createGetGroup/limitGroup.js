@@ -21,65 +21,46 @@ const getChunkSizes = (array, size) => {
   return chunkSizes
 }
 
+const highestVersion = (a, b) => {
+  return versionIsAbove(a, b) ? a : b
+}
+
 const groupReducer = (previous, group) => {
-  const result = {}
-  result.pluginNames = mergePluginNames(previous.pluginNames, group.pluginNames).sort()
-  const mergedCompatMap = { ...previous.compatMap }
-  Object.keys(group.compatMap).forEach((platformName) => {
-    const versions = group.compatMap[platformName]
-    versions.forEach((platformVersion) => {
-      if (platformName in mergedCompatMap) {
-        const highestVersion = mergedCompatMap[platformName]
-        if (versionIsAbove(platformVersion, highestVersion)) {
-          mergedCompatMap[platformName] = String(platformVersion)
-        }
-      } else {
-        mergedCompatMap[platformName] = String(platformVersion)
-      }
+  const pluginNames = mergePluginNames(previous.pluginNames, group.pluginNames).sort()
+
+  const previousCompatMap = previous.compatMap
+  const groupCompatMap = group.compatMap
+  const compatMap = { ...previousCompatMap }
+  Object.keys(groupCompatMap).forEach((platformName) => {
+    groupCompatMap[platformName].forEach((platformVersion) => {
+      compatMap[platformName] = String(
+        platformName in compatMap
+          ? highestVersion(compatMap[platformName], platformVersion)
+          : platformVersion,
+      )
     })
   })
-  result.compatMap = mergedCompatMap
-  return result
+
+  return {
+    pluginNames,
+    compatMap,
+  }
 }
 
 export const limitGroup = (groups, getScoreForGroup, count = 4) => {
   let i = 0
   const chunkSizes = getChunkSizes(groups, count).reverse()
   const finalGroups = []
-  let remainingGroups = groups
+  const sortedGroups = groups.sort((a, b) => getScoreForGroup(b) - getScoreForGroup(a))
+  let remainingGroups = sortedGroups
 
   while (i < chunkSizes.length) {
-    const sortedRemainingGroups = remainingGroups.sort(
-      (a, b) => getScoreForGroup(b) - getScoreForGroup(a),
-    )
-    const groupsToMerge = sortedRemainingGroups.slice(0, chunkSizes[i])
-    remainingGroups = sortedRemainingGroups.slice(chunkSizes[i])
-    const mergedGroup = groupsToMerge.reduce(
-      // eslint-disable-next-line no-loop-func
-      (previous, group, index) => {
-        const result = groupReducer(previous, group, index)
-
-        // remove all occurences to version or oldest version in next groups
-        Object.keys(result.compatMap).forEach((platformName) => {
-          const platformVersion = result.compatMap[platformName]
-
-          remainingGroups
-            .slice(index)
-            .filter(({ compatMap }) => platformName in compatMap)
-            .forEach(({ compatMap }) => {
-              compatMap[platformName] = compatMap[platformName].filter((nextGroupversion) => {
-                return versionIsAbove(nextGroupversion, platformVersion)
-              })
-            })
-        })
-
-        return result
-      },
-      {
-        pluginNames: [],
-        compatMap: {},
-      },
-    )
+    const groupsToMerge = remainingGroups.slice(0, chunkSizes[i])
+    remainingGroups = remainingGroups.slice(chunkSizes[i])
+    const mergedGroup = groupsToMerge.reduce(groupReducer, {
+      pluginNames: [],
+      compatMap: {},
+    })
     if (Object.keys(mergedGroup.compatMap).length) {
       finalGroups.push(mergedGroup)
     }

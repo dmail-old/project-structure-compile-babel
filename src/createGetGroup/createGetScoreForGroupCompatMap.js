@@ -1,13 +1,13 @@
-import { versionIsAbove } from "./versionCompare.js"
+import { versionIsBelow, versionIsAbove } from "./versionCompare.js"
 
 const createGetScoreFromVersionUsage = (stats) => {
   const versionNames = Object.keys(stats)
   if (versionNames.length === 0) {
     return () => null
   }
-  const sortedVersions = versionNames
-    .sort((versionA, versionB) => versionIsAbove(versionA, versionB))
-    .reverse()
+  const sortedVersions = versionNames.sort((versionA, versionB) =>
+    versionIsBelow(versionA, versionB),
+  )
   const highestVersion = sortedVersions.shift()
 
   return (platformVersion) => {

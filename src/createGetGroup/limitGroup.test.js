@@ -39,9 +39,9 @@ const getScore = (a) => a.score
       },
     },
     {
-      pluginNames: ["b", "e", "a"],
+      pluginNames: ["a", "b", "e"],
       compatMap: {
-        chrome: "49",
+        chrome: "50",
         firefox: "11",
       },
     },
