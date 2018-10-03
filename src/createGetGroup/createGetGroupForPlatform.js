@@ -32,6 +32,13 @@ const defaultStats = {
   other: 0.001,
 }
 
+const getPluginTranpilationComplexity = () => 1
+
+const getGroupTranspilationComplexityScore = (group) =>
+  group.pluginNames.reduce((previous, pluginName) => {
+    return previous + getPluginTranpilationComplexity(pluginName)
+  }, 0)
+
 export const getPluginsFromNames = (pluginNames) =>
   pluginNames.map((name) => availablePlugins[name])
 
@@ -91,18 +98,24 @@ export const createGetGroupForPlatform = (
     size,
   )
 
+  const groupsSortedByComplexityToTranspile = groups.sort(
+    (a, b) => getGroupTranspilationComplexityScore(a) - getGroupTranspilationComplexityScore(b),
+  )
+
   const getGroupForPlatform = ({ platformName, platformVersion }) => {
     const platformIsUnknown = groups.every(({ compatMap }) => platformName in compatMap === false)
     if (platformIsUnknown) {
       return groupWithEverything
     }
 
-    const groupWithVersionAbovePlatformVersion = groups.find(({ compatMap }) => {
-      if (platformName in compatMap === false) {
-        return false
-      }
-      return versionIsBelow(platformVersion, compatMap[platformName])
-    })
+    const groupWithVersionAbovePlatformVersion = groupsSortedByComplexityToTranspile.find(
+      ({ compatMap }) => {
+        if (platformName in compatMap === false) {
+          return false
+        }
+        return versionIsBelow(platformVersion, compatMap[platformName])
+      },
+    )
     if (groupWithVersionAbovePlatformVersion) {
       return groupWithVersionAbovePlatformVersion
     }
