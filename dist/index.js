@@ -228,56 +228,59 @@ const versionIsBelow = (versionSupposedBelow, versionSupposedAbove) => {
   return compareVersion(versionSupposedBelow, versionSupposedAbove) < 0;
 };
 
-const PLATFORM_NAMES = ["chrome", "edge", "firefox", "safari", "node", "ios", "opera", "electron"];
+const getPlatformVersionForPlugin = (compatMap, pluginName, platformName) => {
+  if (pluginName in compatMap === false) {
+    throw new Error(`unknown plugin ${pluginName}`);
+  }
+
+  const pluginCompatMap = compatMap[pluginName];
+  return platformName in pluginCompatMap ? pluginCompatMap[platformName] : "Infinity";
+};
+
+const getHighestVersionFromPluginNames = (compatMap, pluginNames, platformName) => {
+  return pluginNames.reduce((previous, pluginName) => {
+    const versionForPlugin = getPlatformVersionForPlugin(compatMap, pluginName, platformName);
+
+    if (versionIsBelow(previous, versionForPlugin)) {
+      return String(versionForPlugin);
+    }
+
+    return previous;
+  }, "0");
+};
 /*
-it returns
+returns
 {
-	41: ['transform-template-literals'], // means that below 41 we need this plugin
-	44: ['transform-template-literals', 'transform-literals']
+	41: ['transform-literals', 'transform-template-literals'], // below 41 we need these plugins
+	44: ['transform-template-literals'] // below 44 we need these plugins
+	Infinity: [],
 }
 */
 
-const getPlatformCompatMap = (plugins, platformName) => {
-  const platformCompatMap = {};
-  plugins.forEach(({
-    pluginName,
-    compatMap
-  }) => {
-    const compatVersion = platformName in compatMap ? compatMap[platformName] : "Infinity";
-    platformCompatMap[compatVersion] = _toConsumableArray(compatVersion in platformCompatMap ? platformCompatMap[compatVersion] : []).concat([pluginName]).sort();
-  });
-  Object.keys(platformCompatMap).forEach(version => {
-    const pluginNames = platformCompatMap[version];
-    const pluginsUnhandled = plugins.filter(({
-      pluginName
-    }) => {
-      return pluginNames.indexOf(pluginName) === -1;
-    });
-    pluginsUnhandled.forEach(({
-      pluginName,
-      compatMap
-    }) => {
-      const compatVersion = compatMap[platformName] || "Infinity";
 
-      if (versionIsAbove(version, compatVersion)) {
-        platformCompatMap[version] = _toConsumableArray(platformCompatMap[version]).concat([pluginName]).sort();
-      }
-    });
+const getPlatformCompatMap = (compatMap, platformName) => {
+  const platformCompatMap = {};
+  Object.keys(compatMap).forEach(pluginName => {
+    const platformVersionForPlugin = getPlatformVersionForPlugin(compatMap, pluginName, platformName);
+
+    const pluginNames = _toConsumableArray(platformVersionForPlugin in platformCompatMap ? platformCompatMap[platformVersionForPlugin] : []).concat([pluginName]).sort();
+
+    platformCompatMap[platformVersionForPlugin] = pluginNames;
   });
   return platformCompatMap;
 };
 /*
-it returns
+returns
 [
 	{
-		features: ['transform-template-literals'],
-		platforms: {
-			chrome: [44, 45]
+		pluginNames: ['transform-literals', 'transform-template-literals',],
+		compatMap: {
+			chrome: [41, 44]
 		},
 	},
 	{
-		features: ['transform-template-literals', 'transform-literals'],
-		platforms: {
+		pluginNames: ['transform-template-literals'],
+		compatMap: {
 			chrome: [44]
 		},
 	},
@@ -285,11 +288,11 @@ it returns
 */
 
 
-const generateGroupForPlugins = plugins => {
-  const platformAndCompatMap = PLATFORM_NAMES.map(platformName => {
+const generateGroupFromCompatMap = (compatMap, platformNames) => {
+  const platformAndCompatMap = platformNames.map(platformName => {
     return {
       platformName,
-      platformCompatMap: getPlatformCompatMap(plugins, platformName)
+      platformCompatMap: getPlatformCompatMap(compatMap, platformName)
     };
   });
   const groups = [];
@@ -302,15 +305,16 @@ const generateGroupForPlugins = plugins => {
       const existingGroup = groups.find(group => {
         return group.pluginNames.join("") === pluginNames.join("");
       });
+      const highestVersion = getHighestVersionFromPluginNames(compatMap, pluginNames, platformName);
 
       if (existingGroup) {
         const groupCompatMap = existingGroup.compatMap;
-        groupCompatMap[platformName] = _toConsumableArray(platformName in groupCompatMap ? groupCompatMap[platformName] : []).concat([version]);
+        groupCompatMap[platformName] = _toConsumableArray(platformName in groupCompatMap ? groupCompatMap[platformName] : []).concat([highestVersion]);
       } else {
         groups.push({
           pluginNames,
           compatMap: {
-            [platformName]: [version]
+            [platformName]: [highestVersion]
           }
         });
       }
@@ -444,7 +448,15 @@ const createGetScoreForGroupCompatMap = stats => {
   return getScore;
 };
 
-const defaultPluginsData = require("@babel/preset-env/data/plugins.json");
+const defaultPluginsCompatMap = require("@babel/preset-env/data/plugins.json");
+const removePluginsFromCompatMap = (compatMap, pluginNames) => {
+  const requiredCompatMap = {};
+  pluginNames.forEach(pluginName => {
+    requiredCompatMap[pluginName] = compatMap[pluginName];
+  });
+  return requiredCompatMap;
+};
+const PLATFORM_NAMES = ["chrome", "edge", "firefox", "safari", "node", "ios", "opera", "electron"];
 const defaultStats = {
   chrome: {
     "51": 0.6,
@@ -472,56 +484,38 @@ const defaultStats = {
 
 const getPluginTranpilationComplexity = () => 1;
 
-const getGroupTranspilationComplexityScore = group => group.pluginNames.reduce((previous, pluginName) => {
-  return previous + getPluginTranpilationComplexity(pluginName);
-}, 0);
+const getGroupTranspilationComplexityScore = group => group.pluginNames.reduce((previous, pluginName) => previous + getPluginTranpilationComplexity(pluginName), 0);
 
 const getPluginsFromNames = pluginNames => pluginNames.map(name => availablePlugins[name]);
 const createGetGroupForPlatform = ({
   stats = defaultStats,
-  requiredPluginNames = Object.keys(availablePlugins),
-  pluginsData = defaultPluginsData,
+  compatMap = defaultPluginsCompatMap,
   size = 4,
-  moduleOutput
+  moduleOutput,
+  platformNames = PLATFORM_NAMES
 } = {}) => {
-  const plugins = Object.keys(pluginsData).filter(pluginName => {
-    return requiredPluginNames.indexOf(pluginName) > -1;
-  }).map(pluginName => {
-    return {
-      pluginName,
-      compatMap: pluginsData[pluginName]
-    };
-  }); // hardcode that nothing supports module for now
+  // hardcode that nothing supports module for now
   // of course we would like to use
   // https://github.com/babel/babel/blob/090c364a90fe73d36a30707fc612ce037bdbbb24/packages/babel-preset-env/data/built-in-modules.json#L1
   // but let's force it for now
   // and once everything works fine we'll test how it behaves with native modules
-
   if (moduleOutput === "commonjs") {
-    plugins.push({
-      pluginName: "transform-modules-commonjs",
-      compatMap: {}
-    });
+    compatMap["transform-modules-commonjs"] = {};
   }
 
   if (moduleOutput === "systemjs") {
-    plugins.push({
-      pluginName: "transform-modules-systemjs",
-      compatMap: {}
-    });
+    compatMap["transform-modules-systemjs"] = {};
   }
 
   const groupWithEverything = {
-    pluginNames: plugins.map(({
-      pluginName
-    }) => pluginName),
+    pluginNames: Object.keys(compatMap),
     compatMap: {}
   };
   const groupWithNothing = {
     pluginNames: [],
     compatMap: {}
   };
-  const allGroups = generateGroupForPlugins(plugins);
+  const allGroups = generateGroupFromCompatMap(compatMap, platformNames);
   const getScoreForGroupCompatMap = createGetScoreForGroupCompatMap(stats);
   const groups = limitGroup(allGroups, ({
     compatMap
@@ -540,7 +534,7 @@ const createGetGroupForPlatform = ({
       return groupWithEverything;
     }
 
-    const groupWithVersionAbovePlatformVersion = groupsSortedByComplexityToTranspile.find(({
+    const groupWithVersionAbovePlatform = groupsSortedByComplexityToTranspile.find(({
       compatMap
     }) => {
       if (platformName in compatMap === false) {
@@ -550,8 +544,8 @@ const createGetGroupForPlatform = ({
       return versionIsBelow(platformVersion, compatMap[platformName]);
     });
 
-    if (groupWithVersionAbovePlatformVersion) {
-      return groupWithVersionAbovePlatformVersion;
+    if (groupWithVersionAbovePlatform) {
+      return groupWithVersionAbovePlatform;
     }
 
     return groupWithNothing;
@@ -584,6 +578,7 @@ const compileFileStructure = ({
   } = createGetGroupForPlatform({
     moduleOutput
   });
+  debugger;
   const group = getGroupForPlatform({
     platformName,
     platformVersion
@@ -649,9 +644,11 @@ exports.writeFileFromString = writeFileFromString;
 exports.compileFileStructure = compileFileStructure;
 exports.createGetScoreForGroupCompatMap = createGetScoreForGroupCompatMap;
 exports.limitGroup = limitGroup;
-exports.defaultPluginsData = defaultPluginsData;
+exports.defaultPluginsCompatMap = defaultPluginsCompatMap;
 exports.createGetGroupForPlatform = createGetGroupForPlatform;
 exports.getPluginsFromNames = getPluginsFromNames;
+exports.removePluginsFromCompatMap = removePluginsFromCompatMap;
+exports.generateGroupFromCompatMap = generateGroupFromCompatMap;
 exports.versionIsAbove = versionIsAbove;
 exports.versionIsBelow = versionIsBelow;
 //# sourceMappingURL=index.js.map

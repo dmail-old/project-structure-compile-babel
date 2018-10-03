@@ -3,14 +3,12 @@ const assert = require("assert")
 
 {
   const { getGroupForPlatform } = createGetGroupForPlatform({
-    requiredPluginNames: ["a"],
-    pluginsData: {
+    compatMap: {
       a: {
         chrome: "41",
       },
     },
   })
-
   assert.deepEqual(
     getGroupForPlatform({
       platformName: "chrome",
@@ -36,8 +34,7 @@ const assert = require("assert")
 
 {
   const { getGroupForPlatform } = createGetGroupForPlatform({
-    requiredPluginNames: ["a", "b"],
-    pluginsData: {
+    compatMap: {
       a: {
         chrome: "41",
       },
@@ -59,8 +56,7 @@ const assert = require("assert")
 
 {
   const { getGroupForPlatform } = createGetGroupForPlatform({
-    requiredPluginNames: ["a"],
-    pluginsData: {
+    compatMap: {
       a: {
         chrome: "60",
       },
@@ -79,8 +75,7 @@ const assert = require("assert")
 
 {
   const { getGroupForPlatform } = createGetGroupForPlatform({
-    requiredPluginNames: ["a"],
-    pluginsData: {
+    compatMap: {
       a: {},
     },
     size: 1,
@@ -97,9 +92,8 @@ const assert = require("assert")
 
 {
   const { getGroupForPlatform } = createGetGroupForPlatform({
-    requiredPluginNames: ["a"],
     moduleOutput: "commonjs",
-    pluginsData: {
+    compatMap: {
       a: {
         chrome: "42",
       },
@@ -118,15 +112,11 @@ const assert = require("assert")
 
 {
   const { getGroupForPlatform } = createGetGroupForPlatform({
-    requiredPluginNames: ["a", "b"],
-    pluginsData: {
+    compatMap: {
       a: {
         chrome: "42",
       },
       b: {},
-      c: {
-        chrome: "43",
-      },
     },
     size: 4,
   })
@@ -136,8 +126,22 @@ const assert = require("assert")
       platformName: "chrome",
       platformVersion: "45",
     }).pluginNames.sort(),
-    ["a", "b"],
+    ["b"],
   )
+}
+
+{
+  const { getGroupForPlatform } = createGetGroupForPlatform({
+    platformNames: ["node"],
+  })
+
+  const actual = getGroupForPlatform({
+    platformName: "node",
+    platformVersion: "8.0",
+  }).pluginNames
+  const expected = []
+
+  assert.deepEqual(actual, expected)
 }
 
 console.log("passed")

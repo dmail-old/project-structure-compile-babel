@@ -22,6 +22,7 @@ export const compileFileStructure = ({
     moduleOutput,
   })
 
+  debugger
   const group = getGroupForPlatform({
     platformName,
     platformVersion,
