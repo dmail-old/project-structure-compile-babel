@@ -2,10 +2,11 @@ import path from "path"
 import { createFileStructure } from "@dmail/project-structure"
 import { getFileContentAsString } from "./getFileContentAsString.js"
 import { writeFileFromString } from "./writeFileFromString.js"
-import {
-  createGetGroupForPlatform,
-  getPluginsFromNames,
-} from "./createGetGroup/createGetGroupForPlatform.js"
+import { getPluginNamesForPlatform } from "./getPluginNamesForPlatform.js"
+import { getPluginsFromNames } from "./getPluginsFromNames.js"
+import { compatMapBabel } from "./compatMapBabel.js"
+import { getCompatMapWithModule } from "./getCompatMapWithModule.js"
+import { getCompatMapSubset } from "./getCompatMapSubset.js"
 
 const { transformAsync } = require("@babel/core") // rollup fails if using import here
 
@@ -17,17 +18,14 @@ export const compileFileStructure = ({
   platformName = "node",
   platformVersion = "8.0",
   moduleOutput = "commonjs",
+  compatMap = compatMapBabel,
+  pluginNames = Object.keys(compatMap),
 }) => {
-  const { getGroupForPlatform } = createGetGroupForPlatform({
-    moduleOutput,
-  })
+  compatMap = getCompatMapWithModule(compatMapBabel, moduleOutput)
+  compatMap = getCompatMapSubset(compatMap, pluginNames)
 
-  debugger
-  const group = getGroupForPlatform({
-    platformName,
-    platformVersion,
-  })
-  const plugins = getPluginsFromNames(group.pluginNames)
+  const pluginNamesForPlatform = getPluginNamesForPlatform(compatMap, platformName, platformVersion)
+  const plugins = getPluginsFromNames(pluginNamesForPlatform)
 
   const transpile = ({ code, filename, sourceFileName }) => {
     return transformAsync(code, {

@@ -17,7 +17,7 @@ const semver = (version) => {
   throw new TypeError(`version must be a number or a string, got: ${typeof version}`)
 }
 
-export const compareVersion = (versionA, versionB) => {
+export const versionCompare = (versionA, versionB) => {
   const semanticVersionA = semver(versionA)
   const semanticVersionB = semver(versionB)
 
@@ -48,10 +48,29 @@ export const compareVersion = (versionA, versionB) => {
   return 0
 }
 
+export const versionEqual = (versionA, versionB) => {
+  return String(versionA) === String(versionB)
+}
+
 export const versionIsAbove = (versionSupposedAbove, versionSupposedBelow) => {
-  return compareVersion(versionSupposedAbove, versionSupposedBelow) > 0
+  return versionCompare(versionSupposedAbove, versionSupposedBelow) > 0
 }
 
 export const versionIsBelow = (versionSupposedBelow, versionSupposedAbove) => {
-  return compareVersion(versionSupposedBelow, versionSupposedAbove) < 0
+  return versionCompare(versionSupposedBelow, versionSupposedAbove) < 0
+}
+
+export const versionIsBelowOrEqual = (versionSupposedBelow, versionSupposedAbove) => {
+  return (
+    versionEqual(versionSupposedBelow, versionSupposedAbove) ||
+    versionIsBelow(versionSupposedBelow, versionSupposedAbove)
+  )
+}
+
+export const versionHighest = (versionA, versionB) => {
+  return versionIsAbove(versionA, versionB) ? versionA : versionB
+}
+
+export const versionLowest = (versionA, versionB) => {
+  return versionIsBelow(versionA, versionB) ? versionA : versionB
 }
