@@ -21,8 +21,8 @@ export const compileFileStructure = ({
   compatMap = compatMapBabel,
   pluginNames = Object.keys(compatMap),
 }) => {
-  compatMap = getCompatMapWithModule(compatMapBabel, moduleOutput)
   compatMap = getCompatMapSubset(compatMap, pluginNames)
+  compatMap = getCompatMapWithModule(compatMapBabel, moduleOutput)
 
   const pluginNamesForPlatform = getPluginNamesForPlatform(compatMap, platformName, platformVersion)
   const plugins = getPluginsFromNames(pluginNamesForPlatform)

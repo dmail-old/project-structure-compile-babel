@@ -9,12 +9,14 @@ export const getPlatformVersionForPlugin = (compatMap, pluginName, platformName)
 }
 
 export const getPluginNamesForPlatform = (compatMap, platformName, platformVersion) => {
-  return Object.keys(compatMap).filter((pluginName) => {
-    const platformVersionForPlugin = getPlatformVersionForPlugin(
-      compatMap,
-      pluginName,
-      platformName,
-    )
-    return versionIsBelow(platformVersion, platformVersionForPlugin)
-  })
+  return Object.keys(compatMap)
+    .filter((pluginName) => {
+      const platformVersionForPlugin = getPlatformVersionForPlugin(
+        compatMap,
+        pluginName,
+        platformName,
+      )
+      return versionIsBelow(platformVersion, platformVersionForPlugin)
+    })
+    .sort()
 }

@@ -202,7 +202,7 @@ const getPluginNamesForPlatform = (compatMap, platformName, platformVersion) => 
   return Object.keys(compatMap).filter(pluginName => {
     const platformVersionForPlugin = getPlatformVersionForPlugin(compatMap, pluginName, platformName);
     return versionIsBelow(platformVersion, platformVersionForPlugin);
-  });
+  }).sort();
 };
 
 const getPluginsFromNames = pluginNames => pluginNames.map(name => availablePlugins[name]);
@@ -288,8 +288,8 @@ const compileFileStructure = ({
   compatMap = compatMapBabel,
   pluginNames = Object.keys(compatMap)
 }) => {
-  compatMap = getCompatMapWithModule(compatMapBabel, moduleOutput);
   compatMap = getCompatMapSubset(compatMap, pluginNames);
+  compatMap = getCompatMapWithModule(compatMapBabel, moduleOutput);
   const pluginNamesForPlatform = getPluginNamesForPlatform(compatMap, platformName, platformVersion);
   const plugins = getPluginsFromNames(pluginNamesForPlatform);
 

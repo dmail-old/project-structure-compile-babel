@@ -1,5 +1,5 @@
 /* eslint-disable no-lone-blocks */
-const { versionIsAbove, versionIsBelow } = require("../../dist/index.js")
+const { versionIsAbove, versionIsBelow } = require("../dist/index.js")
 const assert = require("assert")
 
 {
