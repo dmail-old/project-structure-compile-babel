@@ -351,6 +351,7 @@ const compileFileStructure = ({
 exports.compatMapBabel = compatMapBabel;
 exports.compileFileStructure = compileFileStructure;
 exports.getCompatMapSubset = getCompatMapSubset;
+exports.getCompatMapWithModule = getCompatMapWithModule;
 exports.getPluginNamesForPlatform = getPluginNamesForPlatform;
 exports.getPlatformVersionForPlugin = getPlatformVersionForPlugin;
 exports.getPluginsFromNames = getPluginsFromNames;

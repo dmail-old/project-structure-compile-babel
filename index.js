@@ -1,6 +1,7 @@
 export { compatMapBabel } from "./src/compatMapBabel.js"
 export { compileFileStructure } from "./src/compileFileStructure.js"
 export { getCompatMapSubset } from "./src/getCompatMapSubset.js"
+export { getCompatMapWithModule } from "./src/getCompatMapWithModule.js"
 export {
   getPluginNamesForPlatform,
   getPlatformVersionForPlugin,
