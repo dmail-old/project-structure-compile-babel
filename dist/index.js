@@ -125,11 +125,27 @@ const semver = version => {
   }
 
   if (typeof version === "string") {
-    const parts = version.split(".");
+    if (version.indexOf(".") > -1) {
+      const parts = version.split(".");
+      return {
+        major: Number(parts[0]),
+        minor: parts[1] ? Number(parts[1]) : 0,
+        patch: parts[2] ? Number(parts[2]) : 0
+      };
+    }
+
+    if (isNaN(version)) {
+      return {
+        major: 0,
+        minor: 0,
+        patch: 0
+      };
+    }
+
     return {
-      major: Number(parts[0]),
-      minor: parts[1] ? Number(parts[1]) : 0,
-      patch: parts[2] ? Number(parts[2]) : 0
+      major: Number(version),
+      minor: 0,
+      patch: 0
     };
   }
 

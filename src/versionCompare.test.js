@@ -38,4 +38,8 @@ const assert = require("assert")
   assert.equal(versionIsBelow("Infinity", "Infinity"), false)
 }
 
+{
+  assert.equal(versionIsAbove("nope", "0.0.1"), false)
+}
+
 console.log("passed")
