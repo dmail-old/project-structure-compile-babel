@@ -15,4 +15,10 @@ const assert = require("assert")
   assert.deepEqual(actual, expected)
 }
 
+{
+  const actual = getPluginNamesForPlatform(compatMapBabel, "unknown", "8.0")
+  const expected = Object.keys(compatMapBabel).sort()
+  assert.deepEqual(actual, expected)
+}
+
 console.log("passed")
