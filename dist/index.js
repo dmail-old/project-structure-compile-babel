@@ -365,6 +365,7 @@ const compileFileStructure = ({
   });
 };
 
+exports.availablePlugins = availablePlugins;
 exports.compatMapBabel = compatMapBabel;
 exports.compileFileStructure = compileFileStructure;
 exports.getCompatMapSubset = getCompatMapSubset;

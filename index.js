@@ -6,7 +6,7 @@ export {
   getPluginNamesForPlatform,
   getPlatformVersionForPlugin,
 } from "./src/getPluginNamesForPlatform.js"
-export { getPluginsFromNames } from "./src/getPluginsFromNames.js"
+export { getPluginsFromNames, availablePlugins } from "./src/getPluginsFromNames.js"
 export {
   versionIsAbove,
   versionIsBelow,
