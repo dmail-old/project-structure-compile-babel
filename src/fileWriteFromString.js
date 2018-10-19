@@ -64,7 +64,7 @@ const createFolderUntil = ({ location }) => {
   )
 }
 
-export const writeFileFromString = (location, content) => {
+export const fileWriteFromString = (location, content) => {
   return createFolderUntil({ location }).then(() => {
     return new Promise((resolve, reject) => {
       fs.writeFile(location, content, (error) => {

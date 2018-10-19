@@ -1,6 +1,6 @@
 import fs from "fs"
 
-export const getFileContentAsString = (location) =>
+export const fileReadAsString = (location) =>
   new Promise((resolve, reject) => {
     fs.readFile(location, (error, buffer) => {
       if (error) {

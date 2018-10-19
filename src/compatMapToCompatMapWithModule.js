@@ -1,4 +1,4 @@
-export const getCompatMapWithModule = (compatMap, moduleFormat) => {
+export const compatMapToCompatMapWithModule = (compatMap, moduleFormat) => {
   // hardcode that nothing supports module for now
   // of course we would like to use
   // https://github.com/babel/babel/blob/090c364a90fe73d36a30707fc612ce037bdbbb24/packages/babel-preset-env/data/built-in-modules.json#L1

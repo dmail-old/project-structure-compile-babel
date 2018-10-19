@@ -1,12 +1,9 @@
 export { compatMapBabel } from "./src/compatMapBabel.js"
 export { compileFileStructure } from "./src/compileFileStructure.js"
-export { getCompatMapSubset } from "./src/getCompatMapSubset.js"
-export { getCompatMapWithModule } from "./src/getCompatMapWithModule.js"
-export {
-  getPluginNamesForPlatform,
-  getPlatformVersionForPlugin,
-} from "./src/getPluginNamesForPlatform.js"
-export { getPluginsFromNames, availablePlugins } from "./src/getPluginsFromNames.js"
+export { compatMapWithout } from "./src/compatMapWithout.js"
+export { compatMapToCompatMapWithModule } from "./src/compatMapToCompatMapWithModule.js"
+export { platformToPluginNames, getPlatformVersionForPlugin } from "./src/platformToPluginNames.js"
+export { pluginNameToPlugin, availablePlugins } from "./src/pluginNameToPlugin.js"
 export {
   versionIsAbove,
   versionIsBelow,
@@ -15,4 +12,4 @@ export {
   versionLowest,
   versionCompare,
 } from "./src/versionCompare.js"
-export { writeFileFromString } from "./src/writeFileFromString.js"
+export { fileWriteFromString } from "./src/fileWriteFromString.js"

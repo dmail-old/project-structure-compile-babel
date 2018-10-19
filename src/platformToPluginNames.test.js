@@ -1,9 +1,9 @@
 /* eslint-disable no-lone-blocks */
-const { compatMapBabel, getPluginNamesForPlatform } = require("../dist/index.js")
+const { compatMapBabel, platformToPluginNames } = require("../dist/index.js")
 const assert = require("assert")
 
 {
-  const actual = getPluginNamesForPlatform(compatMapBabel, "node", "8.0")
+  const actual = platformToPluginNames(compatMapBabel, "node", "8.0")
   const expected = [
     "proposal-async-generator-functions",
     "proposal-json-strings",
@@ -16,7 +16,7 @@ const assert = require("assert")
 }
 
 {
-  const actual = getPluginNamesForPlatform(compatMapBabel, "unknown", "8.0")
+  const actual = platformToPluginNames(compatMapBabel, "unknown", "8.0")
   const expected = Object.keys(compatMapBabel).sort()
   assert.deepEqual(actual, expected)
 }

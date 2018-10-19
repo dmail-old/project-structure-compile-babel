@@ -1,12 +1,12 @@
 import path from "path"
 import { createFileStructure } from "@dmail/project-structure"
-import { getFileContentAsString } from "./getFileContentAsString.js"
-import { writeFileFromString } from "./writeFileFromString.js"
-import { getPluginNamesForPlatform } from "./getPluginNamesForPlatform.js"
-import { getPluginsFromNames } from "./getPluginsFromNames.js"
+import { fileReadAsString } from "./fileReadAsString.js"
+import { fileWriteFromString } from "./fileWriteFromString.js"
+import { platformToPluginNames } from "./platformToPluginNames.js"
 import { compatMapBabel } from "./compatMapBabel.js"
-import { getCompatMapWithModule } from "./getCompatMapWithModule.js"
-import { getCompatMapSubset } from "./getCompatMapSubset.js"
+import { compatMapToCompatMapWithModule } from "./compatMapToCompatMapWithModule.js"
+import { compatMapWithout } from "./compatMapWithout.js"
+import { pluginNameToPlugin } from "./pluginNameToPlugin.js"
 
 const { transformAsync } = require("@babel/core") // rollup fails if using import here
 
@@ -21,11 +21,11 @@ export const compileFileStructure = ({
   compatMap = compatMapBabel,
   pluginNames = Object.keys(compatMap),
 }) => {
-  compatMap = getCompatMapSubset(compatMap, pluginNames)
-  compatMap = getCompatMapWithModule(compatMapBabel, moduleOutput)
+  compatMap = compatMapWithout(compatMap, pluginNames)
+  compatMap = compatMapToCompatMapWithModule(compatMapBabel, moduleOutput)
 
-  const pluginNamesForPlatform = getPluginNamesForPlatform(compatMap, platformName, platformVersion)
-  const plugins = getPluginsFromNames(pluginNamesForPlatform)
+  const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion)
+  const plugins = pluginNamesForPlatform.map((pluginName) => pluginNameToPlugin(pluginName))
 
   const transpile = ({ code, filename, sourceFileName }) => {
     return transformAsync(code, {
@@ -37,7 +37,7 @@ export const compileFileStructure = ({
   }
 
   const compileAndWrite = ({ absoluteName, relativeName }) => {
-    return getFileContentAsString(absoluteName).then((source) => {
+    return fileReadAsString(absoluteName).then((source) => {
       const buildRelativeName = `${into}/${relativeName}`
       const buildLocation = `${root}/${buildRelativeName}`
       const sourceMapName = `${path.basename(relativeName)}.map`
@@ -55,12 +55,12 @@ export const compileFileStructure = ({
             code = `${code}
 //# sourceMappingURL=${sourceMapLocationForSource}`
             return Promise.all([
-              writeFileFromString(buildLocation, code),
-              writeFileFromString(sourceMapLocation, JSON.stringify(map, null, "  ")),
+              fileWriteFromString(buildLocation, code),
+              fileWriteFromString(sourceMapLocation, JSON.stringify(map, null, "  ")),
             ])
           }
 
-          return writeFileFromString(buildLocation, code)
+          return fileWriteFromString(buildLocation, code)
         })
         .then(() => {
           console.log(`${relativeName} -> ${buildRelativeName} `)

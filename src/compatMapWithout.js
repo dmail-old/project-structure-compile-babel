@@ -1,4 +1,4 @@
-export const getCompatMapSubset = (compatMap, pluginNames) => {
+export const compatMapWithout = (compatMap, pluginNames) => {
   const compatMapSubset = {}
   pluginNames.forEach((pluginName) => {
     compatMapSubset[pluginName] = compatMap[pluginName]

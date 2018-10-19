@@ -13,7 +13,7 @@ const pluginJSON = require("@babel/preset-env/data/plugins.json");
 
 const compatMapBabel = pluginJSON;
 
-const getFileContentAsString = location => new Promise((resolve, reject) => {
+const fileReadAsString = location => new Promise((resolve, reject) => {
   fs.readFile(location, (error, buffer) => {
     if (error) {
       reject(error);
@@ -99,7 +99,7 @@ const createFolderUntil = ({
   }));
 };
 
-const writeFileFromString = (location, content) => {
+const fileWriteFromString = (location, content) => {
   return createFolderUntil({
     location
   }).then(() => {
@@ -214,15 +214,13 @@ const getPlatformVersionForPlugin = (compatMap, pluginName, platformName) => {
   const pluginCompatMap = compatMap[pluginName];
   return platformName in pluginCompatMap ? pluginCompatMap[platformName] : "Infinity";
 };
-const getPluginNamesForPlatform = (compatMap, platformName, platformVersion) => {
+const platformToPluginNames = (compatMap, platformName, platformVersion) => {
   const pluginNames = Object.keys(compatMap);
   return pluginNames.filter(pluginName => {
     const platformVersionForPlugin = getPlatformVersionForPlugin(compatMap, pluginName, platformName);
     return versionIsBelow(platformVersion, platformVersionForPlugin);
   }).sort();
 };
-
-const getPluginsFromNames = pluginNames => pluginNames.map(name => availablePlugins[name]);
 
 function _defineProperty(obj, key, value) {
   if (key in obj) {
@@ -258,7 +256,7 @@ function _objectSpread(target) {
   return target;
 }
 
-const getCompatMapWithModule = (compatMap, moduleFormat) => {
+const compatMapToCompatMapWithModule = (compatMap, moduleFormat) => {
   // hardcode that nothing supports module for now
   // of course we would like to use
   // https://github.com/babel/babel/blob/090c364a90fe73d36a30707fc612ce037bdbbb24/packages/babel-preset-env/data/built-in-modules.json#L1
@@ -279,13 +277,15 @@ const getCompatMapWithModule = (compatMap, moduleFormat) => {
   return compatMap;
 };
 
-const getCompatMapSubset = (compatMap, pluginNames) => {
+const compatMapWithout = (compatMap, pluginNames) => {
   const compatMapSubset = {};
   pluginNames.forEach(pluginName => {
     compatMapSubset[pluginName] = compatMap[pluginName];
   });
   return compatMapSubset;
 };
+
+const pluginNameToPlugin = pluginName => availablePlugins[pluginName];
 
 const {
   transformAsync
@@ -305,10 +305,10 @@ const compileFileStructure = ({
   compatMap = compatMapBabel,
   pluginNames = Object.keys(compatMap)
 }) => {
-  compatMap = getCompatMapSubset(compatMap, pluginNames);
-  compatMap = getCompatMapWithModule(compatMapBabel, moduleOutput);
-  const pluginNamesForPlatform = getPluginNamesForPlatform(compatMap, platformName, platformVersion);
-  const plugins = getPluginsFromNames(pluginNamesForPlatform);
+  compatMap = compatMapWithout(compatMap, pluginNames);
+  compatMap = compatMapToCompatMapWithModule(compatMapBabel, moduleOutput);
+  const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion);
+  const plugins = pluginNamesForPlatform.map(pluginName => pluginNameToPlugin(pluginName));
 
   const transpile = ({
     code,
@@ -327,7 +327,7 @@ const compileFileStructure = ({
     absoluteName,
     relativeName
   }) => {
-    return getFileContentAsString(absoluteName).then(source => {
+    return fileReadAsString(absoluteName).then(source => {
       const buildRelativeName = `${into}/${relativeName}`;
       const buildLocation = `${root}/${buildRelativeName}`;
       const sourceMapName = `${path.basename(relativeName)}.map`;
@@ -345,10 +345,10 @@ const compileFileStructure = ({
         if (map) {
           code = `${code}
 //# sourceMappingURL=${sourceMapLocationForSource}`;
-          return Promise.all([writeFileFromString(buildLocation, code), writeFileFromString(sourceMapLocation, JSON.stringify(map, null, "  "))]);
+          return Promise.all([fileWriteFromString(buildLocation, code), fileWriteFromString(sourceMapLocation, JSON.stringify(map, null, "  "))]);
         }
 
-        return writeFileFromString(buildLocation, code);
+        return fileWriteFromString(buildLocation, code);
       }).then(() => {
         console.log(`${relativeName} -> ${buildRelativeName} `);
       });
@@ -368,16 +368,16 @@ const compileFileStructure = ({
 exports.availablePlugins = availablePlugins;
 exports.compatMapBabel = compatMapBabel;
 exports.compileFileStructure = compileFileStructure;
-exports.getCompatMapSubset = getCompatMapSubset;
-exports.getCompatMapWithModule = getCompatMapWithModule;
-exports.getPluginNamesForPlatform = getPluginNamesForPlatform;
+exports.compatMapWithout = compatMapWithout;
+exports.compatMapToCompatMapWithModule = compatMapToCompatMapWithModule;
+exports.platformToPluginNames = platformToPluginNames;
 exports.getPlatformVersionForPlugin = getPlatformVersionForPlugin;
-exports.getPluginsFromNames = getPluginsFromNames;
+exports.pluginNameToPlugin = pluginNameToPlugin;
 exports.versionIsAbove = versionIsAbove;
 exports.versionIsBelow = versionIsBelow;
 exports.versionIsBelowOrEqual = versionIsBelowOrEqual;
 exports.versionHighest = versionHighest;
 exports.versionLowest = versionLowest;
 exports.versionCompare = versionCompare;
-exports.writeFileFromString = writeFileFromString;
+exports.fileWriteFromString = fileWriteFromString;
 //# sourceMappingURL=index.js.map

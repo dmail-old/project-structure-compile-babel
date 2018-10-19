@@ -15,6 +15,7 @@ rollup({
       plugins: ["@babel/plugin-proposal-object-rest-spread", "@babel/plugin-transform-spread"],
     }),
   ],
+  onwarn: () => {},
 })
   .then((bundle) => {
     return bundle.write({

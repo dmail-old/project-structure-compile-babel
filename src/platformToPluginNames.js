@@ -8,7 +8,7 @@ export const getPlatformVersionForPlugin = (compatMap, pluginName, platformName)
   return platformName in pluginCompatMap ? pluginCompatMap[platformName] : "Infinity"
 }
 
-export const getPluginNamesForPlatform = (compatMap, platformName, platformVersion) => {
+export const platformToPluginNames = (compatMap, platformName, platformVersion) => {
   const pluginNames = Object.keys(compatMap)
 
   return pluginNames
