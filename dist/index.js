@@ -277,7 +277,7 @@ const compatMapToCompatMapWithModule = (compatMap, moduleFormat) => {
   return compatMap;
 };
 
-const compatMapWithout = (compatMap, pluginNames) => {
+const compatMapWithOnly = (compatMap, pluginNames) => {
   const compatMapSubset = {};
   pluginNames.forEach(pluginName => {
     compatMapSubset[pluginName] = compatMap[pluginName];
@@ -305,7 +305,7 @@ const compileFileStructure = ({
   compatMap = compatMapBabel,
   pluginNames = Object.keys(compatMap)
 }) => {
-  compatMap = compatMapWithout(compatMap, pluginNames);
+  compatMap = compatMapWithOnly(compatMap, pluginNames);
   compatMap = compatMapToCompatMapWithModule(compatMapBabel, moduleOutput);
   const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion);
   const plugins = pluginNamesForPlatform.map(pluginName => pluginNameToPlugin(pluginName));
@@ -368,7 +368,7 @@ const compileFileStructure = ({
 exports.availablePlugins = availablePlugins;
 exports.compatMapBabel = compatMapBabel;
 exports.compileFileStructure = compileFileStructure;
-exports.compatMapWithout = compatMapWithout;
+exports.compatMapWithOnly = compatMapWithOnly;
 exports.compatMapToCompatMapWithModule = compatMapToCompatMapWithModule;
 exports.platformToPluginNames = platformToPluginNames;
 exports.getPlatformVersionForPlugin = getPlatformVersionForPlugin;

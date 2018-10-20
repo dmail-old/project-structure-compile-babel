@@ -5,7 +5,7 @@ import { fileWriteFromString } from "./fileWriteFromString.js"
 import { platformToPluginNames } from "./platformToPluginNames.js"
 import { compatMapBabel } from "./compatMapBabel.js"
 import { compatMapToCompatMapWithModule } from "./compatMapToCompatMapWithModule.js"
-import { compatMapWithout } from "./compatMapWithout.js"
+import { compatMapWithOnly } from "./compatMapWithOnly.js"
 import { pluginNameToPlugin } from "./pluginNameToPlugin.js"
 
 const { transformAsync } = require("@babel/core") // rollup fails if using import here
@@ -21,7 +21,7 @@ export const compileFileStructure = ({
   compatMap = compatMapBabel,
   pluginNames = Object.keys(compatMap),
 }) => {
-  compatMap = compatMapWithout(compatMap, pluginNames)
+  compatMap = compatMapWithOnly(compatMap, pluginNames)
   compatMap = compatMapToCompatMapWithModule(compatMapBabel, moduleOutput)
 
   const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion)

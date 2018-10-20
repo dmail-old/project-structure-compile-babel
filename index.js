@@ -1,6 +1,6 @@
 export { compatMapBabel } from "./src/compatMapBabel.js"
 export { compileFileStructure } from "./src/compileFileStructure.js"
-export { compatMapWithout } from "./src/compatMapWithout.js"
+export { compatMapWithOnly } from "./src/compatMapWithOnly.js"
 export { compatMapToCompatMapWithModule } from "./src/compatMapToCompatMapWithModule.js"
 export { platformToPluginNames, getPlatformVersionForPlugin } from "./src/platformToPluginNames.js"
 export { pluginNameToPlugin, availablePlugins } from "./src/pluginNameToPlugin.js"
