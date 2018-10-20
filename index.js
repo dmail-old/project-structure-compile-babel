@@ -1,7 +1,7 @@
 export { compatMapBabel } from "./src/compatMapBabel.js"
+export { compatMapModule } from "./src/compatMapModule.js"
 export { compileFileStructure } from "./src/compileFileStructure.js"
 export { compatMapWithOnly } from "./src/compatMapWithOnly.js"
-export { compatMapToCompatMapWithModule } from "./src/compatMapToCompatMapWithModule.js"
 export { platformToPluginNames, getPlatformVersionForPlugin } from "./src/platformToPluginNames.js"
 export { pluginNameToPlugin, availablePlugins } from "./src/pluginNameToPlugin.js"
 export {

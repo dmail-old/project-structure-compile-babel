@@ -13,6 +13,8 @@ const pluginJSON = require("@babel/preset-env/data/plugins.json");
 
 const compatMapBabel = pluginJSON;
 
+const compatMapModule = require("@babel/preset-env/data/built-in-modules.json");
+
 const fileReadAsString = location => new Promise((resolve, reject) => {
   fs.readFile(location, (error, buffer) => {
     if (error) {
@@ -222,61 +224,6 @@ const platformToPluginNames = (compatMap, platformName, platformVersion) => {
   }).sort();
 };
 
-function _defineProperty(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
-}
-
-function _objectSpread(target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i] != null ? arguments[i] : {};
-    var ownKeys = Object.keys(source);
-
-    if (typeof Object.getOwnPropertySymbols === 'function') {
-      ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-      }));
-    }
-
-    ownKeys.forEach(function (key) {
-      _defineProperty(target, key, source[key]);
-    });
-  }
-
-  return target;
-}
-
-const compatMapToCompatMapWithModule = (compatMap, moduleFormat) => {
-  // hardcode that nothing supports module for now
-  // of course we would like to use
-  // https://github.com/babel/babel/blob/090c364a90fe73d36a30707fc612ce037bdbbb24/packages/babel-preset-env/data/built-in-modules.json#L1
-  // but let's force it for now
-  // and once everything works fine we'll test how it behaves with native modules
-  if (moduleFormat === "commonjs") {
-    return _objectSpread({}, compatMap, {
-      "transform-modules-commonjs": {}
-    });
-  }
-
-  if (moduleFormat === "systemjs") {
-    return _objectSpread({}, compatMap, {
-      "transform-modules-systemjs": {}
-    });
-  }
-
-  return compatMap;
-};
-
 const compatMapWithOnly = (compatMap, pluginNames) => {
   const compatMapSubset = {};
   pluginNames.forEach(pluginName => {
@@ -301,12 +248,10 @@ const compileFileStructure = ({
   into = "dist",
   platformName = "node",
   platformVersion = "8.0",
-  moduleOutput = "commonjs",
   compatMap = compatMapBabel,
   pluginNames = Object.keys(compatMap)
 }) => {
   compatMap = compatMapWithOnly(compatMap, pluginNames);
-  compatMap = compatMapToCompatMapWithModule(compatMapBabel, moduleOutput);
   const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion);
   const plugins = pluginNamesForPlatform.map(pluginName => pluginNameToPlugin(pluginName));
 
@@ -367,9 +312,9 @@ const compileFileStructure = ({
 
 exports.availablePlugins = availablePlugins;
 exports.compatMapBabel = compatMapBabel;
+exports.compatMapModule = compatMapModule;
 exports.compileFileStructure = compileFileStructure;
 exports.compatMapWithOnly = compatMapWithOnly;
-exports.compatMapToCompatMapWithModule = compatMapToCompatMapWithModule;
 exports.platformToPluginNames = platformToPluginNames;
 exports.getPlatformVersionForPlugin = getPlatformVersionForPlugin;
 exports.pluginNameToPlugin = pluginNameToPlugin;

@@ -4,7 +4,6 @@ import { fileReadAsString } from "./fileReadAsString.js"
 import { fileWriteFromString } from "./fileWriteFromString.js"
 import { platformToPluginNames } from "./platformToPluginNames.js"
 import { compatMapBabel } from "./compatMapBabel.js"
-import { compatMapToCompatMapWithModule } from "./compatMapToCompatMapWithModule.js"
 import { compatMapWithOnly } from "./compatMapWithOnly.js"
 import { pluginNameToPlugin } from "./pluginNameToPlugin.js"
 
@@ -17,12 +16,10 @@ export const compileFileStructure = ({
   into = "dist",
   platformName = "node",
   platformVersion = "8.0",
-  moduleOutput = "commonjs",
   compatMap = compatMapBabel,
   pluginNames = Object.keys(compatMap),
 }) => {
   compatMap = compatMapWithOnly(compatMap, pluginNames)
-  compatMap = compatMapToCompatMapWithModule(compatMapBabel, moduleOutput)
 
   const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion)
   const plugins = pluginNamesForPlatform.map((pluginName) => pluginNameToPlugin(pluginName))
