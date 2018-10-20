@@ -1,5 +1,5 @@
 import path from "path"
-import { createFileStructure } from "@dmail/project-structure"
+import { readProjectMetaMap, forEachRessourceMatching } from "@dmail/project-structure"
 import { fileReadAsString } from "./fileReadAsString.js"
 import { fileWriteFromString } from "./fileWriteFromString.js"
 import { platformToPluginNames } from "./platformToPluginNames.js"
@@ -65,7 +65,7 @@ export const compileFileStructure = ({
     })
   }
 
-  return createFileStructure({ root, config }).then(({ forEachFileMatching }) => {
-    return forEachFileMatching(predicate, compileAndWrite)
+  return readProjectMetaMap({ root, config }).then((metaMap) => {
+    return forEachRessourceMatching(root, metaMap, predicate, compileAndWrite)
   })
 }
