@@ -299,13 +299,11 @@ const compileFileStructure = ({
     });
   };
 
-  return projectStructure.createFileStructure({
+  return projectStructure.readProjectMetaMap({
     root,
     config
-  }).then(({
-    forEachFileMatching
-  }) => {
-    return forEachFileMatching(predicate, compileAndWrite);
+  }).then(metaMap => {
+    return projectStructure.forEachRessourceMatching(root, metaMap, predicate, compileAndWrite);
   });
 };
 
