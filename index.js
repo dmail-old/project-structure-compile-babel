@@ -3,7 +3,7 @@ export { compatMapModule } from "./src/compatMapModule.js"
 export { compileFileStructure } from "./src/compileFileStructure.js"
 export { compatMapWithOnly } from "./src/compatMapWithOnly.js"
 export { platformToPluginNames, getPlatformVersionForPlugin } from "./src/platformToPluginNames.js"
-export { pluginNameToPlugin, availablePlugins } from "./src/pluginNameToPlugin.js"
+export { pluginNameToPlugin, isPluginNameCore } from "./src/pluginNameToPlugin.js"
 export {
   versionIsAbove,
   versionIsBelow,

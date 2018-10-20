@@ -232,6 +232,7 @@ const compatMapWithOnly = (compatMap, pluginNames) => {
   return compatMapSubset;
 };
 
+const isPluginNameCore = pluginName => pluginName in availablePlugins;
 const pluginNameToPlugin = pluginName => availablePlugins[pluginName];
 
 const {
@@ -310,7 +311,6 @@ const compileFileStructure = ({
   });
 };
 
-exports.availablePlugins = availablePlugins;
 exports.compatMapBabel = compatMapBabel;
 exports.compatMapModule = compatMapModule;
 exports.compileFileStructure = compileFileStructure;
@@ -318,6 +318,7 @@ exports.compatMapWithOnly = compatMapWithOnly;
 exports.platformToPluginNames = platformToPluginNames;
 exports.getPlatformVersionForPlugin = getPlatformVersionForPlugin;
 exports.pluginNameToPlugin = pluginNameToPlugin;
+exports.isPluginNameCore = isPluginNameCore;
 exports.versionIsAbove = versionIsAbove;
 exports.versionIsBelow = versionIsBelow;
 exports.versionIsBelowOrEqual = versionIsBelowOrEqual;
