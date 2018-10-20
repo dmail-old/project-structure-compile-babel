@@ -5,9 +5,9 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var fs = _interopDefault(require('fs'));
-var availablePlugins = _interopDefault(require('@babel/preset-env/lib/available-plugins.js'));
 var path = _interopDefault(require('path'));
 var projectStructure = require('@dmail/project-structure');
+var availablePlugins = _interopDefault(require('@babel/preset-env/lib/available-plugins.js'));
 
 const pluginJSON = require("@babel/preset-env/data/plugins.json");
 
@@ -232,9 +232,6 @@ const compatMapWithOnly = (compatMap, pluginNames) => {
   return compatMapSubset;
 };
 
-const isPluginNameCore = pluginName => pluginName in availablePlugins;
-const pluginNameToPlugin = pluginName => availablePlugins[pluginName];
-
 const {
   transformAsync
 } = require("@babel/core"); // rollup fails if using import here
@@ -250,11 +247,12 @@ const compileFileStructure = ({
   platformName = "node",
   platformVersion = "8.0",
   compatMap = compatMapBabel,
-  pluginNames = Object.keys(compatMap)
+  pluginMap
 }) => {
+  const pluginNames = Object.keys(pluginMap);
   compatMap = compatMapWithOnly(compatMap, pluginNames);
   const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion);
-  const plugins = pluginNamesForPlatform.map(pluginName => pluginNameToPlugin(pluginName));
+  const plugins = pluginNamesForPlatform.map(pluginName => pluginMap[pluginName]);
 
   const transpile = ({
     code,
@@ -311,6 +309,21 @@ const compileFileStructure = ({
   });
 };
 
+const isPluginNameCore = pluginName => pluginName in availablePlugins;
+const pluginNameToPlugin = pluginName => availablePlugins[pluginName];
+
+const createCorePluginMap = corePluginOptionMap => {
+  const pluginMap = {};
+  Object.keys(corePluginOptionMap).forEach(pluginName => {
+    if (isPluginNameCore(pluginName) === false) {
+      throw new Error(`${pluginName} is not a core plugin`);
+    }
+
+    pluginMap[pluginName] = [pluginNameToPlugin(pluginName), corePluginOptionMap[pluginName]];
+  });
+  return pluginMap;
+};
+
 exports.compatMapBabel = compatMapBabel;
 exports.compatMapModule = compatMapModule;
 exports.compileFileStructure = compileFileStructure;
@@ -319,6 +332,7 @@ exports.platformToPluginNames = platformToPluginNames;
 exports.getPlatformVersionForPlugin = getPlatformVersionForPlugin;
 exports.pluginNameToPlugin = pluginNameToPlugin;
 exports.isPluginNameCore = isPluginNameCore;
+exports.createCorePluginMap = createCorePluginMap;
 exports.versionIsAbove = versionIsAbove;
 exports.versionIsBelow = versionIsBelow;
 exports.versionIsBelowOrEqual = versionIsBelowOrEqual;

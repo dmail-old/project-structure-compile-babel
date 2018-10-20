@@ -4,6 +4,7 @@ export { compileFileStructure } from "./src/compileFileStructure.js"
 export { compatMapWithOnly } from "./src/compatMapWithOnly.js"
 export { platformToPluginNames, getPlatformVersionForPlugin } from "./src/platformToPluginNames.js"
 export { pluginNameToPlugin, isPluginNameCore } from "./src/pluginNameToPlugin.js"
+export { createCorePluginMap } from "./src/createCorePluginMap.js"
 export {
   versionIsAbove,
   versionIsBelow,
