@@ -1,3 +1,3 @@
 const pluginJSON = require("@babel/preset-env/data/plugins.json")
 
-export const compatMapBabel = pluginJSON
+export const compatMap = pluginJSON

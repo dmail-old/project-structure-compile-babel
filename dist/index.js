@@ -11,9 +11,7 @@ var availablePlugins = _interopDefault(require('@babel/preset-env/lib/available-
 
 const pluginJSON = require("@babel/preset-env/data/plugins.json");
 
-const compatMapBabel = pluginJSON;
-
-const compatMapModule = require("@babel/preset-env/data/built-in-modules.json");
+const compatMap = pluginJSON;
 
 const fileReadAsString = location => new Promise((resolve, reject) => {
   fs.readFile(location, (error, buffer) => {
@@ -117,6 +115,106 @@ const fileWriteFromString = (location, content) => {
   });
 };
 
+const {
+  transformAsync
+} = require("@babel/core"); // rollup fails if using import here
+
+
+const compileFileStructure = ({
+  root,
+  config = "structure.config.js",
+  predicate = ({
+    compile
+  }) => compile,
+  into = "dist",
+  plugins
+}) => {
+  const transpile = ({
+    code,
+    filename,
+    sourceFileName
+  }) => {
+    return transformAsync(code, {
+      plugins,
+      filename,
+      sourceMaps: true,
+      sourceFileName
+    });
+  };
+
+  const compileAndWrite = ({
+    absoluteName,
+    relativeName
+  }) => {
+    return fileReadAsString(absoluteName).then(source => {
+      const buildRelativeName = `${into}/${relativeName}`;
+      const buildLocation = `${root}/${buildRelativeName}`;
+      const sourceMapName = `${path.basename(relativeName)}.map`;
+      const sourceMapLocationForSource = `${sourceMapName}`;
+      const sourceMapLocation = `${root}/${into}/${relativeName}.map`;
+      const sourceNameForSourceMap = path.relative(path.dirname(sourceMapLocation), absoluteName);
+      return transpile({
+        code: source,
+        filename: absoluteName,
+        sourceFileName: sourceNameForSourceMap
+      }).then(({
+        code,
+        map
+      }) => {
+        if (map) {
+          code = `${code}
+//# sourceMappingURL=${sourceMapLocationForSource}`;
+          return Promise.all([fileWriteFromString(buildLocation, code), fileWriteFromString(sourceMapLocation, JSON.stringify(map, null, "  "))]);
+        }
+
+        return fileWriteFromString(buildLocation, code);
+      }).then(() => {
+        console.log(`${relativeName} -> ${buildRelativeName} `);
+      });
+    });
+  };
+
+  return projectStructure.readProjectMetaMap({
+    root,
+    config
+  }).then(metaMap => {
+    return projectStructure.forEachRessourceMatching(root, metaMap, predicate, compileAndWrite);
+  });
+};
+
+const isPluginNameCore = pluginName => pluginName in availablePlugins;
+const pluginNameToPlugin = pluginName => {
+  if (isPluginNameCore(pluginName) === false) {
+    throw new Error(`unknown plugin ${pluginName}`);
+  }
+
+  return availablePlugins[pluginName];
+};
+const pluginOptionMapToPluginMap = (pluginOptionsMap = {}) => {
+  const pluginMap = {};
+  Object.keys(pluginOptionsMap).forEach(pluginName => {
+    pluginMap[pluginName] = [pluginNameToPlugin(pluginName), pluginOptionsMap[pluginName]];
+  });
+  return pluginMap;
+};
+
+const moduleCompatMap = require("@babel/preset-env/data/built-in-modules.json");
+
+const objectValues = object => {
+  return Object.keys(object).map(key => object[key]);
+};
+const objectFilter = (object, callback) => {
+  const filtered = {};
+  Object.keys(object).forEach(key => {
+    const value = object[key];
+
+    if (callback(key, value, object)) {
+      filtered[key] = value;
+    }
+  });
+  return filtered;
+};
+
 const semver = version => {
   if (typeof version === "number") {
     return {
@@ -208,134 +306,39 @@ const versionLowest = (versionA, versionB) => {
   return versionIsBelow(versionA, versionB) ? versionA : versionB;
 };
 
-const getPlatformVersionForPlugin = (compatMap, pluginName, platformName) => {
-  if (pluginName in compatMap === false) {
-    throw new Error(`unknown plugin ${pluginName}`);
-  }
-
-  const pluginCompatMap = compatMap[pluginName];
+const pluginCompatMapToPlatformVersion = (pluginCompatMap, platformName) => {
   return platformName in pluginCompatMap ? pluginCompatMap[platformName] : "Infinity";
 };
-const platformToPluginNames = (compatMap, platformName, platformVersion) => {
-  const pluginNames = Object.keys(compatMap);
-  return pluginNames.filter(pluginName => {
-    const platformVersionForPlugin = getPlatformVersionForPlugin(compatMap, pluginName, platformName);
-    return versionIsBelow(platformVersion, platformVersionForPlugin);
-  }).sort();
+
+const isPlatformCompatible = (pluginCompatMap, platformName, platformVersion) => {
+  const compatibleVersion = pluginCompatMapToPlatformVersion(pluginCompatMap, platformName);
+  return versionIsBelow(platformVersion, compatibleVersion);
 };
 
-const compatMapWithOnly = (compatMap, pluginNames) => {
-  const compatMapSubset = {};
-  pluginNames.forEach(pluginName => {
-    compatMapSubset[pluginName] = pluginName in compatMap ? compatMap[pluginName] : {};
-  });
-  return compatMapSubset;
-};
-
-const {
-  transformAsync
-} = require("@babel/core"); // rollup fails if using import here
-
-
-const compileFileStructure = ({
-  root,
-  config = "structure.config.js",
-  predicate = ({
-    compile
-  }) => compile,
-  into = "dist",
-  platformName = "node",
-  platformVersion = "8.0",
-  compatMap = compatMapBabel,
-  pluginMap
-}) => {
-  const pluginNames = Object.keys(pluginMap);
-  compatMap = compatMapWithOnly(compatMap, pluginNames);
-  const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion);
-  const plugins = pluginNamesForPlatform.map(pluginName => pluginMap[pluginName]);
-
-  const transpile = ({
-    code,
-    filename,
-    sourceFileName
-  }) => {
-    return transformAsync(code, {
-      plugins,
-      filename,
-      sourceMaps: true,
-      sourceFileName
-    });
-  };
-
-  const compileAndWrite = ({
-    absoluteName,
-    relativeName
-  }) => {
-    return fileReadAsString(absoluteName).then(source => {
-      const buildRelativeName = `${into}/${relativeName}`;
-      const buildLocation = `${root}/${buildRelativeName}`;
-      const sourceMapName = `${path.basename(relativeName)}.map`;
-      const sourceMapLocationForSource = `${sourceMapName}`;
-      const sourceMapLocation = `${root}/${into}/${relativeName}.map`;
-      const sourceNameForSourceMap = path.relative(path.dirname(sourceMapLocation), absoluteName);
-      return transpile({
-        code: source,
-        filename: absoluteName,
-        sourceFileName: sourceNameForSourceMap
-      }).then(({
-        code,
-        map
-      }) => {
-        if (map) {
-          code = `${code}
-//# sourceMappingURL=${sourceMapLocationForSource}`;
-          return Promise.all([fileWriteFromString(buildLocation, code), fileWriteFromString(sourceMapLocation, JSON.stringify(map, null, "  "))]);
-        }
-
-        return fileWriteFromString(buildLocation, code);
-      }).then(() => {
-        console.log(`${relativeName} -> ${buildRelativeName} `);
-      });
-    });
-  };
-
-  return projectStructure.readProjectMetaMap({
-    root,
-    config
-  }).then(metaMap => {
-    return projectStructure.forEachRessourceMatching(root, metaMap, predicate, compileAndWrite);
+const pluginMapForPlatform = (pluginMap, platformName, platformVersion, compatMap$$1) => {
+  return objectFilter(pluginMap, pluginName => {
+    return isPlatformCompatible(pluginName in compatMap$$1 ? compatMap$$1[pluginName] : {}, platformName, platformVersion);
   });
 };
 
-const isPluginNameCore = pluginName => pluginName in availablePlugins;
-const pluginNameToPlugin = pluginName => availablePlugins[pluginName];
-
-const createCorePluginMap = corePluginOptionMap => {
-  const pluginMap = {};
-  Object.keys(corePluginOptionMap).forEach(pluginName => {
-    if (isPluginNameCore(pluginName) === false) {
-      throw new Error(`${pluginName} is not a core plugin`);
-    }
-
-    pluginMap[pluginName] = [pluginNameToPlugin(pluginName), corePluginOptionMap[pluginName]];
-  });
-  return pluginMap;
+const pluginMapToPluginsForPlatform = (pluginMap, platformName, platformVersion, compatMap$$1 = compatMap) => {
+  const platformPluginMap = pluginMapForPlatform(pluginMap, platformName, platformVersion, compatMap$$1);
+  const plugins = objectValues(platformPluginMap);
+  return plugins;
 };
 
-exports.compatMapBabel = compatMapBabel;
-exports.compatMapModule = compatMapModule;
+exports.compatMap = compatMap;
 exports.compileFileStructure = compileFileStructure;
-exports.compatMapWithOnly = compatMapWithOnly;
-exports.platformToPluginNames = platformToPluginNames;
-exports.getPlatformVersionForPlugin = getPlatformVersionForPlugin;
 exports.pluginNameToPlugin = pluginNameToPlugin;
 exports.isPluginNameCore = isPluginNameCore;
-exports.createCorePluginMap = createCorePluginMap;
+exports.pluginOptionMapToPluginMap = pluginOptionMapToPluginMap;
+exports.fileWriteFromString = fileWriteFromString;
+exports.moduleCompatMap = moduleCompatMap;
+exports.pluginMapToPluginsForPlatform = pluginMapToPluginsForPlatform;
 exports.versionIsAbove = versionIsAbove;
 exports.versionIsBelow = versionIsBelow;
 exports.versionIsBelowOrEqual = versionIsBelowOrEqual;
 exports.versionHighest = versionHighest;
 exports.versionLowest = versionLowest;
 exports.versionCompare = versionCompare;
-exports.fileWriteFromString = fileWriteFromString;
 //# sourceMappingURL=index.js.map

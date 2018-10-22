@@ -2,9 +2,6 @@ import path from "path"
 import { readProjectMetaMap, forEachRessourceMatching } from "@dmail/project-structure"
 import { fileReadAsString } from "./fileReadAsString.js"
 import { fileWriteFromString } from "./fileWriteFromString.js"
-import { platformToPluginNames } from "./platformToPluginNames.js"
-import { compatMapBabel } from "./compatMapBabel.js"
-import { compatMapWithOnly } from "./compatMapWithOnly.js"
 
 const { transformAsync } = require("@babel/core") // rollup fails if using import here
 
@@ -13,17 +10,8 @@ export const compileFileStructure = ({
   config = "structure.config.js",
   predicate = ({ compile }) => compile,
   into = "dist",
-  platformName = "node",
-  platformVersion = "8.0",
-  compatMap = compatMapBabel,
-  pluginMap,
+  plugins,
 }) => {
-  const pluginNames = Object.keys(pluginMap)
-  compatMap = compatMapWithOnly(compatMap, pluginNames)
-
-  const pluginNamesForPlatform = platformToPluginNames(compatMap, platformName, platformVersion)
-  const plugins = pluginNamesForPlatform.map((pluginName) => pluginMap[pluginName])
-
   const transpile = ({ code, filename, sourceFileName }) => {
     return transformAsync(code, {
       plugins,

@@ -1,10 +1,13 @@
-export { compatMapBabel } from "./src/compatMapBabel.js"
-export { compatMapModule } from "./src/compatMapModule.js"
+export { compatMap } from "./src/compatMap.js"
 export { compileFileStructure } from "./src/compileFileStructure.js"
-export { compatMapWithOnly } from "./src/compatMapWithOnly.js"
-export { platformToPluginNames, getPlatformVersionForPlugin } from "./src/platformToPluginNames.js"
-export { pluginNameToPlugin, isPluginNameCore } from "./src/pluginNameToPlugin.js"
-export { createCorePluginMap } from "./src/createCorePluginMap.js"
+export {
+  pluginNameToPlugin,
+  isPluginNameCore,
+  pluginOptionMapToPluginMap,
+} from "./src/corePlugin.js"
+export { fileWriteFromString } from "./src/fileWriteFromString.js"
+export { moduleCompatMap } from "./src/moduleCompatMap.js"
+export { pluginMapToPluginsForPlatform } from "./src/pluginMapToPluginsForPlatform.js"
 export {
   versionIsAbove,
   versionIsBelow,
@@ -13,4 +16,3 @@ export {
   versionLowest,
   versionCompare,
 } from "./src/versionCompare.js"
-export { fileWriteFromString } from "./src/fileWriteFromString.js"
