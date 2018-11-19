@@ -407,13 +407,11 @@ const compileFileInto = async (name, {
   });
 
   if (map) {
-    await Promise.all([fileWriteFromString(compiledAbsoluteName, `${code}
+    return Promise.all([fileWriteFromString(compiledAbsoluteName, `${code}
 //# sourceMappingURL=${sourceMapLocationForSource}`), fileWriteFromString(sourceMapAbsoluteName, JSON.stringify(map, null, "  "))]);
-  } else {
-    await fileWriteFromString(compiledAbsoluteName, code);
   }
 
-  console.log(`${name} -> ${compiledName} `);
+  return fileWriteFromString(compiledAbsoluteName, code);
 };
 
 const isPluginNameCore = pluginName => pluginName in availablePlugins;

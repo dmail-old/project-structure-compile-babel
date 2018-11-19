@@ -23,7 +23,7 @@ export const compileFileInto = async (name, { root, into, plugins }) => {
   })
 
   if (map) {
-    await Promise.all([
+    return Promise.all([
       fileWriteFromString(
         compiledAbsoluteName,
         `${code}
@@ -31,9 +31,7 @@ export const compileFileInto = async (name, { root, into, plugins }) => {
       ),
       fileWriteFromString(sourceMapAbsoluteName, JSON.stringify(map, null, "  ")),
     ])
-  } else {
-    await fileWriteFromString(compiledAbsoluteName, code)
   }
 
-  console.log(`${name} -> ${compiledName} `)
+  return fileWriteFromString(compiledAbsoluteName, code)
 }
