@@ -6,12 +6,275 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var fs = _interopDefault(require('fs'));
 var path = _interopDefault(require('path'));
-var projectStructure = require('@dmail/project-structure');
 var availablePlugins = _interopDefault(require('@babel/preset-env/lib/available-plugins.js'));
 
-const pluginJSON = require("@babel/preset-env/data/plugins.json");
-
-const compatMap = pluginJSON;
+// copied from @babel/preset-env/data/plugins.json.
+// Because this is an hidden implementation detail of @babel/preset-env
+// it could be deprecated or moved anytime.
+// For that reason it makes more sens to have it inlined here
+// than importing it from an undocumented location.
+// Ideally it would be documented or a separate module
+const compatMap = {
+  "transform-template-literals": {
+    chrome: "41",
+    edge: "13",
+    firefox: "34",
+    safari: "9",
+    node: "4",
+    ios: "9",
+    opera: "28",
+    electron: "0.24"
+  },
+  "transform-literals": {
+    chrome: "44",
+    edge: "12",
+    firefox: "53",
+    safari: "9",
+    node: "4",
+    ios: "9",
+    opera: "31",
+    electron: "0.31"
+  },
+  "transform-function-name": {
+    chrome: "51",
+    firefox: "53",
+    safari: "10",
+    node: "6.5",
+    ios: "10",
+    opera: "38",
+    electron: "1.2"
+  },
+  "transform-arrow-functions": {
+    chrome: "47",
+    edge: "13",
+    firefox: "45",
+    safari: "10",
+    node: "6",
+    ios: "10",
+    opera: "34",
+    electron: "0.36"
+  },
+  "transform-block-scoped-functions": {
+    chrome: "41",
+    edge: "12",
+    firefox: "46",
+    safari: "10",
+    node: "4",
+    ie: "11",
+    ios: "10",
+    opera: "28",
+    electron: "0.24"
+  },
+  "transform-classes": {
+    chrome: "46",
+    edge: "13",
+    firefox: "45",
+    safari: "10",
+    node: "5",
+    ios: "10",
+    opera: "33",
+    electron: "0.36"
+  },
+  "transform-object-super": {
+    chrome: "46",
+    edge: "13",
+    firefox: "45",
+    safari: "10",
+    node: "5",
+    ios: "10",
+    opera: "33",
+    electron: "0.36"
+  },
+  "transform-shorthand-properties": {
+    chrome: "43",
+    edge: "12",
+    firefox: "33",
+    safari: "9",
+    node: "4",
+    ios: "9",
+    opera: "30",
+    electron: "0.29"
+  },
+  "transform-duplicate-keys": {
+    chrome: "42",
+    edge: "12",
+    firefox: "34",
+    safari: "9",
+    node: "4",
+    ios: "9",
+    opera: "29",
+    electron: "0.27"
+  },
+  "transform-computed-properties": {
+    chrome: "44",
+    edge: "12",
+    firefox: "34",
+    safari: "7.1",
+    node: "4",
+    ios: "8",
+    opera: "31",
+    electron: "0.31"
+  },
+  "transform-for-of": {
+    chrome: "51",
+    edge: "15",
+    firefox: "53",
+    safari: "10",
+    node: "6.5",
+    ios: "10",
+    opera: "38",
+    electron: "1.2"
+  },
+  "transform-sticky-regex": {
+    chrome: "49",
+    edge: "13",
+    firefox: "3",
+    safari: "10",
+    node: "6",
+    ios: "10",
+    opera: "36",
+    electron: "1"
+  },
+  "transform-dotall-regex": {
+    chrome: "62",
+    safari: "11.1",
+    node: "8.10",
+    ios: "11.3",
+    opera: "49",
+    electron: "3"
+  },
+  "transform-unicode-regex": {
+    chrome: "50",
+    edge: "13",
+    firefox: "46",
+    safari: "10",
+    node: "6",
+    ios: "10",
+    opera: "37",
+    electron: "1.1"
+  },
+  "transform-spread": {
+    chrome: "46",
+    edge: "13",
+    firefox: "36",
+    safari: "10",
+    node: "5",
+    ios: "10",
+    opera: "33",
+    electron: "0.36"
+  },
+  "transform-parameters": {
+    chrome: "49",
+    edge: "14",
+    firefox: "53",
+    safari: "10",
+    node: "6",
+    ios: "10",
+    opera: "36",
+    electron: "1"
+  },
+  "transform-destructuring": {
+    chrome: "51",
+    firefox: "53",
+    safari: "10",
+    node: "6.5",
+    ios: "10",
+    opera: "38",
+    electron: "1.2"
+  },
+  "transform-block-scoping": {
+    chrome: "49",
+    edge: "14",
+    firefox: "51",
+    safari: "10",
+    node: "6",
+    ios: "10",
+    opera: "36",
+    electron: "1"
+  },
+  "transform-typeof-symbol": {
+    chrome: "38",
+    edge: "12",
+    firefox: "36",
+    safari: "9",
+    node: "0.12",
+    ios: "9",
+    opera: "25",
+    electron: "0.2"
+  },
+  "transform-new-target": {
+    chrome: "46",
+    edge: "14",
+    firefox: "41",
+    safari: "10",
+    node: "5",
+    ios: "10",
+    opera: "33",
+    electron: "0.36"
+  },
+  "transform-regenerator": {
+    chrome: "50",
+    edge: "13",
+    firefox: "53",
+    safari: "10",
+    node: "6",
+    ios: "10",
+    opera: "37",
+    electron: "1.1"
+  },
+  "transform-exponentiation-operator": {
+    chrome: "52",
+    edge: "14",
+    firefox: "52",
+    safari: "10.1",
+    node: "7",
+    ios: "10.3",
+    opera: "39",
+    electron: "1.3"
+  },
+  "transform-async-to-generator": {
+    chrome: "55",
+    edge: "15",
+    firefox: "52",
+    safari: "10.1",
+    node: "7.6",
+    ios: "10.3",
+    opera: "42",
+    electron: "1.6"
+  },
+  "proposal-async-generator-functions": {
+    chrome: "63",
+    firefox: "57",
+    safari: "12",
+    opera: "50",
+    electron: "3"
+  },
+  "proposal-object-rest-spread": {
+    chrome: "60",
+    firefox: "55",
+    safari: "11.1",
+    node: "8.3",
+    ios: "11.3",
+    opera: "47",
+    electron: "2"
+  },
+  "proposal-unicode-property-regex": {
+    chrome: "64",
+    safari: "11.1",
+    ios: "11.3",
+    opera: "51",
+    electron: "3"
+  },
+  "proposal-json-strings": {},
+  "proposal-optional-catch-binding": {
+    chrome: "66",
+    firefox: "58",
+    safari: "11.1",
+    ios: "11.3",
+    opera: "53",
+    electron: "3"
+  }
+};
 
 const fileReadAsString = location => new Promise((resolve, reject) => {
   fs.readFile(location, (error, buffer) => {
@@ -120,66 +383,37 @@ const {
 } = require("@babel/core"); // rollup fails if using import here
 
 
-const compileFileStructure = ({
+const compileFileInto = async (name, {
   root,
-  config = "structure.config.js",
-  predicate = ({
-    compile
-  }) => compile,
-  into = "dist",
+  into,
   plugins
 }) => {
-  const transpile = ({
+  const absoluteName = `${root}/${name}`;
+  const compiledName = `${into}/${name}`;
+  const compiledAbsoluteName = `${root}/${compiledName}`;
+  const sourceMapName = `${path.basename(name)}.map`;
+  const sourceMapLocationForSource = `${sourceMapName}`;
+  const sourceMapAbsoluteName = `${root}/${into}/${name}.map`;
+  const sourceNameForSourceMap = path.relative(path.dirname(sourceMapAbsoluteName), absoluteName);
+  const source = await fileReadAsString(absoluteName);
+  const {
     code,
-    filename,
-    sourceFileName
-  }) => {
-    return transformAsync(code, {
-      plugins,
-      filename,
-      sourceMaps: true,
-      sourceFileName
-    });
-  };
-
-  const compileAndWrite = ({
-    absoluteName,
-    relativeName
-  }) => {
-    return fileReadAsString(absoluteName).then(source => {
-      const buildRelativeName = `${into}/${relativeName}`;
-      const buildLocation = `${root}/${buildRelativeName}`;
-      const sourceMapName = `${path.basename(relativeName)}.map`;
-      const sourceMapLocationForSource = `${sourceMapName}`;
-      const sourceMapLocation = `${root}/${into}/${relativeName}.map`;
-      const sourceNameForSourceMap = path.relative(path.dirname(sourceMapLocation), absoluteName);
-      return transpile({
-        code: source,
-        filename: absoluteName,
-        sourceFileName: sourceNameForSourceMap
-      }).then(({
-        code,
-        map
-      }) => {
-        if (map) {
-          code = `${code}
-//# sourceMappingURL=${sourceMapLocationForSource}`;
-          return Promise.all([fileWriteFromString(buildLocation, code), fileWriteFromString(sourceMapLocation, JSON.stringify(map, null, "  "))]);
-        }
-
-        return fileWriteFromString(buildLocation, code);
-      }).then(() => {
-        console.log(`${relativeName} -> ${buildRelativeName} `);
-      });
-    });
-  };
-
-  return projectStructure.readProjectMetaMap({
-    root,
-    config
-  }).then(metaMap => {
-    return projectStructure.forEachRessourceMatching(root, metaMap, predicate, compileAndWrite);
+    map
+  } = await transformAsync(source, {
+    plugins,
+    filename: absoluteName,
+    sourceMaps: true,
+    sourceFileName: sourceNameForSourceMap
   });
+
+  if (map) {
+    await Promise.all([fileWriteFromString(compiledAbsoluteName, `${code}
+//# sourceMappingURL=${sourceMapLocationForSource}`), fileWriteFromString(sourceMapAbsoluteName, JSON.stringify(map, null, "  "))]);
+  } else {
+    await fileWriteFromString(compiledAbsoluteName, code);
+  }
+
+  console.log(`${name} -> ${compiledName} `);
 };
 
 const isPluginNameCore = pluginName => pluginName in availablePlugins;
@@ -198,7 +432,23 @@ const pluginOptionMapToPluginMap = (pluginOptionsMap = {}) => {
   return pluginMap;
 };
 
-const moduleCompatMap = require("@babel/preset-env/data/built-in-modules.json");
+// copied from @babel/preset-env/data/built-in-modules.json.
+// Because this is an hidden implementation detail of @babel/preset-env
+// it could be deprecated or moved anytime.
+// For that reason it makes more sens to have it inlined here
+// than importing it from an undocumented location.
+// Ideally it would be documented or a separate module
+const moduleCompatMap = {
+  edge: "16",
+  firefox: "60",
+  chrome: "61",
+  safari: "10.1",
+  opera: "48",
+  ios_saf: "10.3",
+  // eslint-disable-line camelcase
+  and_ff: "60" // eslint-disable-line camelcase
+
+};
 
 const objectValues = object => {
   return Object.keys(object).map(key => object[key]);
@@ -328,7 +578,7 @@ const pluginMapToPluginsForPlatform = (pluginMap, platformName, platformVersion,
 };
 
 exports.compatMap = compatMap;
-exports.compileFileStructure = compileFileStructure;
+exports.compileFileInto = compileFileInto;
 exports.pluginNameToPlugin = pluginNameToPlugin;
 exports.isPluginNameCore = isPluginNameCore;
 exports.pluginOptionMapToPluginMap = pluginOptionMapToPluginMap;

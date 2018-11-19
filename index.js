@@ -1,5 +1,5 @@
 export { compatMap } from "./src/compatMap.js"
-export { compileFileStructure } from "./src/compileFileStructure.js"
+export { compileFileInto } from "./src/compileFileInto.js"
 export {
   pluginNameToPlugin,
   isPluginNameCore,
