@@ -5,8 +5,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var fs = _interopDefault(require('fs'));
-var path = _interopDefault(require('path'));
 var availablePlugins = _interopDefault(require('@babel/preset-env/lib/available-plugins.js'));
+var path = _interopDefault(require('path'));
 
 // copied from @babel/preset-env/data/plugins.json.
 // Because this is an hidden implementation detail of @babel/preset-env
@@ -286,6 +286,49 @@ const fileReadAsString = location => new Promise((resolve, reject) => {
   });
 });
 
+const {
+  transformAsync
+} = require("@babel/core"); // rollup fails if using import here
+
+
+const compileFile = async (name, {
+  localRoot,
+  plugins
+}) => {
+  const absoluteName = `${localRoot}/${name}`;
+  const source = await fileReadAsString(absoluteName);
+  const {
+    code,
+    map
+  } = await transformAsync(source, {
+    plugins,
+    filenameRelative: name,
+    filename: absoluteName,
+    sourceMaps: true,
+    sourceFileName: name
+  });
+  return {
+    code,
+    map
+  };
+};
+
+const isPluginNameCore = pluginName => pluginName in availablePlugins;
+const pluginNameToPlugin = pluginName => {
+  if (isPluginNameCore(pluginName) === false) {
+    throw new Error(`unknown plugin ${pluginName}`);
+  }
+
+  return availablePlugins[pluginName];
+};
+const pluginOptionMapToPluginMap = (pluginOptionsMap = {}) => {
+  const pluginMap = {};
+  Object.keys(pluginOptionsMap).forEach(pluginName => {
+    pluginMap[pluginName] = [pluginNameToPlugin(pluginName), pluginOptionsMap[pluginName]];
+  });
+  return pluginMap;
+};
+
 const sequence = require("promise-sequential"); // rollup fails if using import here
 
 
@@ -376,58 +419,6 @@ const fileWriteFromString = (location, content) => {
       });
     });
   });
-};
-
-const {
-  transformAsync
-} = require("@babel/core"); // rollup fails if using import here
-
-
-const compileFileInto = async (name, {
-  root,
-  into,
-  plugins
-}) => {
-  const absoluteName = `${root}/${name}`;
-  const compiledName = `${into}/${name}`;
-  const compiledAbsoluteName = `${root}/${compiledName}`;
-  const sourceMapName = `${path.basename(name)}.map`;
-  const sourceMapLocationForSource = `${sourceMapName}`;
-  const sourceMapAbsoluteName = `${root}/${into}/${name}.map`;
-  const sourceNameForSourceMap = path.relative(path.dirname(sourceMapAbsoluteName), absoluteName);
-  const source = await fileReadAsString(absoluteName);
-  const {
-    code,
-    map
-  } = await transformAsync(source, {
-    plugins,
-    filename: absoluteName,
-    sourceMaps: true,
-    sourceFileName: sourceNameForSourceMap
-  });
-
-  if (map) {
-    return Promise.all([fileWriteFromString(compiledAbsoluteName, `${code}
-//# sourceMappingURL=${sourceMapLocationForSource}`), fileWriteFromString(sourceMapAbsoluteName, JSON.stringify(map, null, "  "))]);
-  }
-
-  return fileWriteFromString(compiledAbsoluteName, code);
-};
-
-const isPluginNameCore = pluginName => pluginName in availablePlugins;
-const pluginNameToPlugin = pluginName => {
-  if (isPluginNameCore(pluginName) === false) {
-    throw new Error(`unknown plugin ${pluginName}`);
-  }
-
-  return availablePlugins[pluginName];
-};
-const pluginOptionMapToPluginMap = (pluginOptionsMap = {}) => {
-  const pluginMap = {};
-  Object.keys(pluginOptionsMap).forEach(pluginName => {
-    pluginMap[pluginName] = [pluginNameToPlugin(pluginName), pluginOptionsMap[pluginName]];
-  });
-  return pluginMap;
 };
 
 // copied from @babel/preset-env/data/built-in-modules.json.
@@ -575,8 +566,30 @@ const pluginMapToPluginsForPlatform = (pluginMap, platformName, platformVersion,
   return plugins;
 };
 
+const writeCompileResultInto = async (name, {
+  code,
+  map
+}, {
+  localRoot,
+  into
+}) => {
+  const compiledName = `${into}/${name}`;
+  const compiledAbsoluteName = `${localRoot}/${compiledName}`;
+
+  if (map) {
+    const sourceMapName = `${path.basename(name)}.map`;
+    const sourceMapLocationForSource = `${sourceMapName}`;
+    const folder = path.dirname(name);
+    const sourceMapAbsoluteName = `${localRoot}/${into}/${folder ? `${folder}/` : "/"}${sourceMapName}`;
+    return Promise.all([fileWriteFromString(compiledAbsoluteName, `${code}
+//# sourceMappingURL=${sourceMapLocationForSource}`), fileWriteFromString(sourceMapAbsoluteName, JSON.stringify(map, null, "  "))]);
+  }
+
+  return fileWriteFromString(compiledAbsoluteName, code);
+};
+
 exports.compatMap = compatMap;
-exports.compileFileInto = compileFileInto;
+exports.compileFile = compileFile;
 exports.pluginNameToPlugin = pluginNameToPlugin;
 exports.isPluginNameCore = isPluginNameCore;
 exports.pluginOptionMapToPluginMap = pluginOptionMapToPluginMap;
@@ -589,4 +602,5 @@ exports.versionIsBelowOrEqual = versionIsBelowOrEqual;
 exports.versionHighest = versionHighest;
 exports.versionLowest = versionLowest;
 exports.versionCompare = versionCompare;
+exports.writeCompileResultInto = writeCompileResultInto;
 //# sourceMappingURL=index.js.map

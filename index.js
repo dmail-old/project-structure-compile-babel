@@ -1,5 +1,5 @@
 export { compatMap } from "./src/compatMap.js"
-export { compileFileInto } from "./src/compileFileInto.js"
+export { compileFile } from "./src/compileFile.js"
 export {
   pluginNameToPlugin,
   isPluginNameCore,
@@ -16,3 +16,4 @@ export {
   versionLowest,
   versionCompare,
 } from "./src/versionCompare.js"
+export { writeCompileResultInto } from "./src/writeCompileResultInto.js"
