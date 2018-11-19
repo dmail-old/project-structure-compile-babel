@@ -566,26 +566,29 @@ const pluginMapToPluginsForPlatform = (pluginMap, platformName, platformVersion,
   return plugins;
 };
 
-const writeCompileResultInto = async (name, {
+const fileSystemWriteCompileResult = async ({
   code,
   map
-}, {
-  localRoot,
-  into
-}) => {
-  const compiledName = `${into}/${name}`;
-  const compiledAbsoluteName = `${localRoot}/${compiledName}`;
-
-  if (map) {
-    const sourceMapName = `${path.basename(name)}.map`;
-    const sourceMapLocationForSource = `${sourceMapName}`;
-    const folder = path.dirname(name);
-    const sourceMapAbsoluteName = `${localRoot}/${into}/${folder ? `${folder}/` : "/"}${sourceMapName}`;
-    return Promise.all([fileWriteFromString(compiledAbsoluteName, `${code}
-//# sourceMappingURL=${sourceMapLocationForSource}`), fileWriteFromString(sourceMapAbsoluteName, JSON.stringify(map, null, "  "))]);
+}, outputFile, outputFolder) => {
+  if (typeof outputFolder !== "string") {
+    throw new TypeError(`outputFolder must be a string, got ${outputFolder}`);
   }
 
-  return fileWriteFromString(compiledAbsoluteName, code);
+  if (outputFolder.length === 0) {
+    throw new Error(`outputFolder must not be an empty string`);
+  }
+
+  if (map) {
+    const sourceMapName = `${path.basename(outputFile)}.map`;
+    const sourceMapFile = outputFile.indexOf("/") === -1 ? sourceMapName : `${path.dirname(outputFile)}/${sourceMapName}`;
+    const sourceMapLocationForSource = sourceMapName;
+    map.sources = [`/${outputFile}`];
+    delete map.sourcesContent;
+    return Promise.all([fileWriteFromString(`${outputFolder}/${outputFile}`, `${code}
+//# sourceMappingURL=${sourceMapLocationForSource}`), fileWriteFromString(`${outputFolder}/${sourceMapFile}`, JSON.stringify(map, null, "  "))]);
+  }
+
+  return fileWriteFromString(`${outputFolder}/${outputFile}`, code);
 };
 
 exports.compatMap = compatMap;
@@ -602,5 +605,5 @@ exports.versionIsBelowOrEqual = versionIsBelowOrEqual;
 exports.versionHighest = versionHighest;
 exports.versionLowest = versionLowest;
 exports.versionCompare = versionCompare;
-exports.writeCompileResultInto = writeCompileResultInto;
+exports.fileSystemWriteCompileResult = fileSystemWriteCompileResult;
 //# sourceMappingURL=index.js.map

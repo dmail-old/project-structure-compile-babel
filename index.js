@@ -16,4 +16,4 @@ export {
   versionLowest,
   versionCompare,
 } from "./src/versionCompare.js"
-export { writeCompileResultInto } from "./src/writeCompileResultInto.js"
+export { fileSystemWriteCompileResult } from "./src/fileSystemWriteCompileResult.js"
