@@ -569,7 +569,7 @@ const pluginMapToPluginsForPlatform = (pluginMap, platformName, platformVersion,
 const fileSystemWriteCompileResult = async ({
   code,
   map
-}, outputFile, outputFolder) => {
+}, outputFile, outputFolder, sourceLocationForSourceMap = `/${outputFile}`) => {
   if (typeof outputFolder !== "string") {
     throw new TypeError(`outputFolder must be a string, got ${outputFolder}`);
   }
@@ -580,12 +580,24 @@ const fileSystemWriteCompileResult = async ({
 
   if (map) {
     const sourceMapName = `${path.basename(outputFile)}.map`;
-    const sourceMapFile = outputFile.indexOf("/") === -1 ? sourceMapName : `${path.dirname(outputFile)}/${sourceMapName}`;
-    const sourceMapLocationForSource = sourceMapName;
-    map.sources = [`/${outputFile}`];
-    delete map.sourcesContent;
-    return Promise.all([fileWriteFromString(`${outputFolder}/${outputFile}`, `${code}
-//# sourceMappingURL=${sourceMapLocationForSource}`), fileWriteFromString(`${outputFolder}/${sourceMapFile}`, JSON.stringify(map, null, "  "))]);
+    const sourceMapFile = outputFile.indexOf("/") < 1 ? sourceMapName : `${path.dirname(outputFile)}/${sourceMapName}`;
+
+    if (sourceLocationForSourceMap === undefined) {
+      sourceLocationForSourceMap = `/${outputFile}`;
+      map.sources = [sourceLocationForSourceMap];
+      delete map.sourcesContent;
+      const sourceMapLocationForSource = sourceMapName;
+      code = `${code}
+//# sourceMappingURL=${sourceMapLocationForSource}`;
+    } else {
+      map.sources = [sourceLocationForSourceMap];
+      delete map.sourcesContent;
+      const sourceMapLocationForSource = `${outputFolder}/${sourceMapFile}`;
+      code = `${code}
+//# sourceMappingURL=${sourceMapLocationForSource}`;
+    }
+
+    return Promise.all([fileWriteFromString(`${outputFolder}/${outputFile}`, code), fileWriteFromString(`${outputFolder}/${sourceMapFile}`, JSON.stringify(map, null, "  "))]);
   }
 
   return fileWriteFromString(`${outputFolder}/${outputFile}`, code);
