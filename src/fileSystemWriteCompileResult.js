@@ -1,11 +1,14 @@
 import path from "path"
 import { fileWriteFromString } from "./fileWriteFromString.js"
 
+const appendSourceMappingURL = (code, sourceMappingURL) => {
+  return `${code}
+//# ${"sourceMappingURL"}=${sourceMappingURL}`
+}
+
 export const fileSystemWriteCompileResult = async (
   { code, map },
-  outputFile,
-  outputFolder,
-  sourceLocationForSourceMap = `/${outputFile}`,
+  { localRoot, outputFile, outputFolder },
 ) => {
   if (typeof outputFolder !== "string") {
     throw new TypeError(`outputFolder must be a string, got ${outputFolder}`)
@@ -16,31 +19,28 @@ export const fileSystemWriteCompileResult = async (
 
   if (map) {
     const sourceMapName = `${path.basename(outputFile)}.map`
+    const sourceMapLocationForSource = `./${sourceMapName}`
+
     const sourceMapFile =
       outputFile.indexOf("/") < 1 ? sourceMapName : `${path.dirname(outputFile)}/${sourceMapName}`
-
-    if (sourceLocationForSourceMap === undefined) {
-      sourceLocationForSourceMap = `/${outputFile}`
-      map.sources = [sourceLocationForSourceMap]
-      delete map.sourcesContent
-
-      const sourceMapLocationForSource = sourceMapName
-      code = `${code}
-//# sourceMappingURL=${sourceMapLocationForSource}`
-    } else {
-      map.sources = [sourceLocationForSourceMap]
-      delete map.sourcesContent
-
-      const sourceMapLocationForSource = `${outputFolder}/${sourceMapFile}`
-      code = `${code}
-//# sourceMappingURL=${sourceMapLocationForSource}`
-    }
+    const sourceLocationForSourceMap = `${path.relative(
+      `${localRoot}/${outputFolder}/${outputFile}`,
+      `${localRoot}/${outputFile}`,
+    )}`.slice("../".length)
+    map.sources = [sourceLocationForSourceMap]
+    delete map.sourcesContent
 
     return Promise.all([
-      fileWriteFromString(`${outputFolder}/${outputFile}`, code),
-      fileWriteFromString(`${outputFolder}/${sourceMapFile}`, JSON.stringify(map, null, "  ")),
+      fileWriteFromString(
+        `${localRoot}/${outputFolder}/${outputFile}`,
+        appendSourceMappingURL(code, sourceMapLocationForSource),
+      ),
+      fileWriteFromString(
+        `${localRoot}/${outputFolder}/${sourceMapFile}`,
+        JSON.stringify(map, null, "  "),
+      ),
     ])
   }
 
-  return fileWriteFromString(`${outputFolder}/${outputFile}`, code)
+  return fileWriteFromString(`${localRoot}/${outputFolder}/${outputFile}`, code)
 }
