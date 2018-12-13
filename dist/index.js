@@ -5,7 +5,42 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var fs = _interopDefault(require('fs'));
-var availablePlugins = _interopDefault(require('@babel/preset-env/lib/available-plugins.js'));
+var proposalAsyncGeneratorFunctions = _interopDefault(require('@babel/plugin-proposal-async-generator-functions'));
+var proposalJSONStrings = _interopDefault(require('@babel/plugin-proposal-json-strings'));
+var proposalObjectRestSpread = _interopDefault(require('@babel/plugin-proposal-object-rest-spread'));
+var proposalOptionalCatchBinding = _interopDefault(require('@babel/plugin-proposal-optional-catch-binding'));
+var proposalUnicodePropertyRegex = _interopDefault(require('@babel/plugin-proposal-unicode-property-regex'));
+var syntaxAsyncGenerator = _interopDefault(require('@babel/plugin-syntax-async-generators'));
+var syntaxDynamicImport = _interopDefault(require('@babel/plugin-syntax-dynamic-import'));
+var syntaxObjectRestSpread = _interopDefault(require('@babel/plugin-syntax-object-rest-spread'));
+var syntaxOptionalCatchBinding = _interopDefault(require('@babel/plugin-syntax-optional-catch-binding'));
+var transformAsyncToGenerator = _interopDefault(require('@babel/plugin-transform-async-to-generator'));
+var transformArrowFunction = _interopDefault(require('@babel/plugin-transform-arrow-functions'));
+var transformBlockScopedFunctions = _interopDefault(require('@babel/plugin-transform-block-scoped-functions'));
+var transformBlockScoping = _interopDefault(require('@babel/plugin-transform-block-scoping'));
+var transformClasses = _interopDefault(require('@babel/plugin-transform-classes'));
+var transformComputedProperties = _interopDefault(require('@babel/plugin-transform-computed-properties'));
+var transformDestructuring = _interopDefault(require('@babel/plugin-transform-destructuring'));
+var transformDotAllRegex = _interopDefault(require('@babel/plugin-transform-dotall-regex'));
+var transformDuplicateKeys = _interopDefault(require('@babel/plugin-transform-duplicate-keys'));
+var transformExponentiationOperator = _interopDefault(require('@babel/plugin-transform-exponentiation-operator'));
+var transformForOf = _interopDefault(require('@babel/plugin-transform-for-of'));
+var transformFunctionName = _interopDefault(require('@babel/plugin-transform-function-name'));
+var transformLiterals = _interopDefault(require('@babel/plugin-transform-literals'));
+var transformModulesAMD = _interopDefault(require('@babel/plugin-transform-modules-amd'));
+var transformModulesCommonJS = _interopDefault(require('@babel/plugin-transform-modules-commonjs'));
+var transformModulesSystemJS = _interopDefault(require('@babel/plugin-transform-modules-systemjs'));
+var transformModulesUMD = _interopDefault(require('@babel/plugin-transform-modules-umd'));
+var transformNewTarget = _interopDefault(require('@babel/plugin-transform-new-target'));
+var transformObjectSuper = _interopDefault(require('@babel/plugin-transform-object-super'));
+var transformParameters = _interopDefault(require('@babel/plugin-transform-parameters'));
+var transformRegenerator = _interopDefault(require('@babel/plugin-transform-regenerator'));
+var transformShorthandProperties = _interopDefault(require('@babel/plugin-transform-shorthand-properties'));
+var transformSpread = _interopDefault(require('@babel/plugin-transform-spread'));
+var transformStickyRegex = _interopDefault(require('@babel/plugin-transform-sticky-regex'));
+var transformTemplateLiterals = _interopDefault(require('@babel/plugin-transform-template-literals'));
+var transformTypeOfSymbol = _interopDefault(require('@babel/plugin-transform-typeof-symbol'));
+var transformUnicodeRegex = _interopDefault(require('@babel/plugin-transform-unicode-regex'));
 var path = _interopDefault(require('path'));
 
 // copied from @babel/preset-env/data/plugins.json.
@@ -311,6 +346,46 @@ const compileFile = async (name, {
     code,
     map
   };
+};
+
+/* eslint-disable import/max-dependencies */
+const availablePlugins = {
+  "proposal-async-generator-functions": proposalAsyncGeneratorFunctions,
+  "proposal-object-rest-spread": proposalObjectRestSpread,
+  "proposal-optional-catch-binding": proposalOptionalCatchBinding,
+  "proposal-unicode-property-regex": proposalUnicodePropertyRegex,
+  "proposal-json-strings": proposalJSONStrings,
+  "syntax-async-generators": syntaxAsyncGenerator,
+  "syntax-dynamic-import": syntaxDynamicImport,
+  "syntax-object-rest-spread": syntaxObjectRestSpread,
+  "syntax-optional-catch-binding": syntaxOptionalCatchBinding,
+  "transform-async-to-generator": transformAsyncToGenerator,
+  "transform-arrow-functions": transformArrowFunction,
+  "transform-block-scoped-functions": transformBlockScopedFunctions,
+  "transform-block-scoping": transformBlockScoping,
+  "transform-classes": transformClasses,
+  "transform-computed-properties": transformComputedProperties,
+  "transform-destructuring": transformDestructuring,
+  "transform-dotall-regex": transformDotAllRegex,
+  "transform-duplicate-keys": transformDuplicateKeys,
+  "transform-exponentiation-operator": transformExponentiationOperator,
+  "transform-for-of": transformForOf,
+  "transform-function-name": transformFunctionName,
+  "transform-literals": transformLiterals,
+  "transform-modules-amd": transformModulesAMD,
+  "transform-modules-commonjs": transformModulesCommonJS,
+  "transform-modules-systemjs": transformModulesSystemJS,
+  "transform-modules-umd": transformModulesUMD,
+  "transform-new-target": transformNewTarget,
+  "transform-object-super": transformObjectSuper,
+  "transform-parameters": transformParameters,
+  "transform-regenerator": transformRegenerator,
+  "transform-shorthand-properties": transformShorthandProperties,
+  "transform-spread": transformSpread,
+  "transform-sticky-regex": transformStickyRegex,
+  "transform-template-literals": transformTemplateLiterals,
+  "transform-typeof-symbol": transformTypeOfSymbol,
+  "transform-unicode-regex": transformUnicodeRegex
 };
 
 const isPluginNameCore = pluginName => pluginName in availablePlugins;
