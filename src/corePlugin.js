@@ -1,4 +1,4 @@
-import availablePlugins from "@babel/preset-env/lib/available-plugins.js"
+import { availablePlugins } from "./availablePlugins.js"
 
 export const isPluginNameCore = (pluginName) => pluginName in availablePlugins
 
