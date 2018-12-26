@@ -61,13 +61,13 @@
 		"@dmail/project-structure": "github:dmail/project-structure"
 	},
 	"devDependencies": {
+		"@dmail/prettiest": "github:dmail/prettiest",
 		"@dmail/project-prettier-config": "github:dmail/project-prettier-config",
-		"prettier": "1.9.1",
 		"@dmail/project-eslint-config": "github:dmail/project-eslint-config",
+		"prettier": "1.15.3",
 		"eslint": "5.1.0",
 		"eslint-plugin-import": "2.6.0",
 		"babel-eslint": "9.0.0",
-		"@dmail/prettiest": "github:dmail/prettiest",
 		"rimraf": "2.6.2",
 		"rollup": "0.66.2",
 		"rollup-plugin-node-resolve": "3.4.0",
@@ -77,11 +77,11 @@
 	},
 	"scripts": {
 		"lint": "eslint .",
-		"format": "prettiest",
+		"format": "node ./script/format.js",
 		"compile": "node ./script/compile.js",
+		"test": "node ./script/test.js",
 		"clean": "rimraf dist",
 		"dist": "npm run clean && npm run compile",
-		"test": "node ./script/test.js",
 		"prepublishOnly": "npm run dist",
 		"reinstall": "npm run clean && rimraf node_modules && npm install"
 	}
