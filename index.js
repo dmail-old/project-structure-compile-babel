@@ -1,5 +1,4 @@
 export { compatMap } from "./src/compatMap.js"
-export { compileFile } from "./src/compileFile.js"
 export {
   pluginNameToPlugin,
   isPluginNameCore,

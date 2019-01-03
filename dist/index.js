@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var fs = _interopDefault(require('fs'));
 var proposalAsyncGeneratorFunctions = _interopDefault(require('@babel/plugin-proposal-async-generator-functions'));
 var proposalJSONStrings = _interopDefault(require('@babel/plugin-proposal-json-strings'));
 var proposalObjectRestSpread = _interopDefault(require('@babel/plugin-proposal-object-rest-spread'));
@@ -41,6 +40,7 @@ var transformStickyRegex = _interopDefault(require('@babel/plugin-transform-stic
 var transformTemplateLiterals = _interopDefault(require('@babel/plugin-transform-template-literals'));
 var transformTypeOfSymbol = _interopDefault(require('@babel/plugin-transform-typeof-symbol'));
 var transformUnicodeRegex = _interopDefault(require('@babel/plugin-transform-unicode-regex'));
+var fs = _interopDefault(require('fs'));
 var path = _interopDefault(require('path'));
 
 // copied from @babel/preset-env/data/plugins.json.
@@ -309,43 +309,6 @@ const compatMap = {
     opera: "53",
     electron: "3"
   }
-};
-
-const fileReadAsString = location => new Promise((resolve, reject) => {
-  fs.readFile(location, (error, buffer) => {
-    if (error) {
-      reject(error);
-    } else {
-      resolve(buffer.toString());
-    }
-  });
-});
-
-const {
-  transformAsync
-} = require("@babel/core"); // rollup fails if using import here
-
-
-const compileFile = async (name, {
-  localRoot,
-  plugins
-}) => {
-  const absoluteName = `${localRoot}/${name}`;
-  const source = await fileReadAsString(absoluteName);
-  const {
-    code,
-    map
-  } = await transformAsync(source, {
-    plugins,
-    filenameRelative: name,
-    filename: absoluteName,
-    sourceMaps: true,
-    sourceFileName: name
-  });
-  return {
-    code,
-    map
-  };
 };
 
 /* eslint-disable import/max-dependencies */
@@ -676,7 +639,6 @@ const fileSystemWriteCompileResult = async ({
 };
 
 exports.compatMap = compatMap;
-exports.compileFile = compileFile;
 exports.pluginNameToPlugin = pluginNameToPlugin;
 exports.isPluginNameCore = isPluginNameCore;
 exports.pluginOptionMapToPluginMap = pluginOptionMapToPluginMap;
