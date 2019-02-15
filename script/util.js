@@ -1,4 +1,4 @@
 const path = require("path")
 
-const localRoot = path.resolve(__dirname, "../")
-exports.localRoot = localRoot
+const projectFolder = path.resolve(__dirname, "../")
+exports.projectFolder = projectFolder
