@@ -1,10 +1,10 @@
 const { rollup } = require("rollup")
 const babel = require("rollup-plugin-babel")
-const { localRoot } = require("./util.js")
+const { projectFolder } = require("./util.js")
 
 const plugins = ["@babel/plugin-proposal-object-rest-spread", "@babel/plugin-transform-spread"]
-const inputFile = `${localRoot}/index.js`
-const outputFile = `${localRoot}/dist/index.js`
+const inputFile = `${projectFolder}/index.js`
+const outputFile = `${projectFolder}/dist/index.js`
 
 const compile = async () => {
   const bundle = await rollup({

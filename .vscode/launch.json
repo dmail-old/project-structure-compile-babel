@@ -5,7 +5,7 @@
       "name": "Launch with node",
       "type": "node",
       "protocol": "inspector",
-      "preLaunchTask": "compile",
+      "preLaunchTask": "dist",
       "request": "launch",
       "program": "${file}",
       "autoAttachChildProcesses": true,
