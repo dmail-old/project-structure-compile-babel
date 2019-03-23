@@ -20,7 +20,7 @@
 		"node": ">=8.6.0"
 	},
 	"dependencies": {
-		"@babel/core": "7.1.0",
+		"@babel/core": "7.2.2",
 		"@babel/plugin-proposal-async-generator-functions": "7.2.0",
 		"@babel/plugin-proposal-json-strings": "7.2.0",
 		"@babel/plugin-proposal-object-rest-spread": "7.2.0",
@@ -29,7 +29,7 @@
 		"@babel/plugin-syntax-async-generators": "7.2.0",
 		"@babel/plugin-syntax-object-rest-spread": "7.2.0",
 		"@babel/plugin-syntax-optional-catch-binding": "7.2.0",
-    "@babel/plugin-syntax-import-meta": "7.2.0",
+		"@babel/plugin-syntax-import-meta": "7.2.0",
 		"@babel/plugin-transform-arrow-functions": "7.2.0",
 		"@babel/plugin-transform-async-to-generator": "7.2.0",
 		"@babel/plugin-transform-block-scoped-functions": "7.2.0",
