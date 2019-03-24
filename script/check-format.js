@@ -6,21 +6,21 @@ const {
 const { projectFolder } = require("./util.js")
 
 const metaDescription = namedValueDescriptionToMetaDescription({
-  format: {
-    "**/*.js": true,
-    "**/*.json": true,
-    "**/*.md": true,
-    node_modules: false, // eslint-disable-line camelcase
-    dist: false,
-    "package.json": false,
-    "package-lock.json": false,
+  formattable: {
+    "/**/*.js": true,
+    "/**/*.json": true,
+    "/**/*.md": true,
+    "/node_modules/": false,
+    "/dist/": false,
+    "/package.json": false,
+    "/package-lock.json": false,
   },
 })
 
 selectAllFileInsideFolder({
   pathname: projectFolder,
   metaDescription,
-  predicate: (meta) => meta.format === true,
+  predicate: (meta) => meta.formattable === true,
   transformFile: ({ filenameRelative }) => filenameRelative,
 }).then((filenameRelativeArray) => {
   prettiest({ folder: projectFolder, filenameRelativeArray })

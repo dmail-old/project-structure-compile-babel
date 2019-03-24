@@ -12,9 +12,9 @@
 	"main": "dist/index.js",
 	"module": "index.js",
 	"files": [
-		"dist",
+		"index.js",
 		"src",
-		"index.js"
+		"dist"
 	],
 	"engines": {
 		"node": ">=8.6.0"
@@ -58,13 +58,13 @@
 		"@babel/plugin-transform-typeof-symbol": "7.2.0",
 		"@babel/plugin-transform-unicode-regex": "7.2.0",
 		"@babel/plugin-syntax-dynamic-import": "7.2.0",
-		"promise-sequential": "1.1.1",
-		"@dmail/project-structure": "github:dmail/project-structure"
+		"@dmail/project-structure": "2.0.0",
+		"promise-sequential": "1.1.1"
 	},
 	"devDependencies": {
 		"@dmail/prettiest": "github:dmail/prettiest",
-		"@dmail/project-prettier-config": "github:dmail/project-prettier-config",
-		"@dmail/project-eslint-config": "github:dmail/project-eslint-config",
+		"@jsenv/prettier-config": "1.0.0",
+		"@jsenv/eslint-config": "8.0.0",
 		"prettier": "1.15.3",
 		"eslint": "5.1.0",
 		"eslint-plugin-import": "2.6.0",
@@ -76,7 +76,7 @@
 	},
 	"scripts": {
 		"lint": "eslint .",
-		"format": "node ./script/format.js",
+		"check-format": "node ./script/check-format.js",
 		"compile": "node ./script/compile.js",
 		"test": "node ./script/test.js",
 		"clean": "rimraf dist",
